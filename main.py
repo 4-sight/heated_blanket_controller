@@ -1,10 +1,15 @@
 import uasyncio as asyncio
-from display import display_message
+
+from secrets import secrets
+from network_connect import connect_to_wifi
+
+ssid = secrets['ssid']
+password = secrets['pw']
 
 
 async def main():
 
-    display_message("Running...")
+    connect_to_wifi(ssid, password)
 
     while True:
         await asyncio.sleep(5)
