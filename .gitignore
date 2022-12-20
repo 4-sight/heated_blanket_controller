@@ -1,0 +1,6 @@
+# Dev
+.vscode/
+.picowgo
+
+# Env
+secrets.py
