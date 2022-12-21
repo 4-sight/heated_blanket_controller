@@ -1,4 +1,4 @@
-actions = dict(
+ACTIONS = dict(
     wifi_connecting="wifi_connecting",
     wifi_connected="wifi_connected",
     wifi_connection_failed="wifi_connection_failed",
@@ -12,12 +12,12 @@ class PicoStore:
     def __init__(self) -> None:
         self._events = dict()
 
-    # def __setitem__(self, __name: str, __value) -> None:
-    #     self[__name] = __value
+    def __setitem__(self, __name: str, __value) -> None:
+        self[__name] = __value
 
-    # def set_state(self, name: str, value) -> None:
-    #     self[name] = value
-    #     self.publish(actions['set_state'].format(__name))
+    def set_state(self, name: str, value) -> None:
+        self[name] = value
+        self.publish(ACTIONS['set_state'].format(name))
 
     def subscribe(self, event: str, callback) -> None:
         if event not in self._events.keys():

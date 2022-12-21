@@ -4,7 +4,7 @@ import uasyncio as asyncio
 import rp2
 import network
 import time
-from store import PicoStore, actions
+from store import PicoStore, ACTIONS
 from display import Display
 
 ssid = secrets['ssid']
@@ -23,8 +23,23 @@ class Connection:
         self._store = store
         self._display = display
 
+        def on_connecting():
+            display.display_message('Connecting to wi-fi...')
+
+        def on_connection_failed():
+            display.display_message('Wi-fi connection failed')
+
+        def on_connected():
+            display.display_message(
+                'Wi-fi connected\n''Ip: {}'.format(self._ip))
+
+        store.subscribe(ACTIONS['wifi_connecting'], on_connecting)
+        store.subscribe(
+            ACTIONS['wifi_connection_failed'], on_connection_failed)
+        store.subscribe(ACTIONS['wifi_connected'], on_connected)
+
     def connect(self) -> None:
-        self._display.display_message('Connecting to wi-fi...')
+        self._store.publish(ACTIONS['wifi_connecting'])
         self._wlan.connect(ssid, password)
 
         timeout = 10
@@ -36,13 +51,10 @@ class Connection:
             time.sleep(1)
 
         if self._wlan.status() != 3:
-            self._display.display_message('Wi-fi connection failed')
-            self._store.publish(actions['wifi_connection_failed'])
+            self._store.publish(ACTIONS['wifi_connection_failed'])
         else:
             self._ip = self._wlan.ifconfig()[0]
-            self._display.display_message(
-                'Wi-fi connected\n''Ip: {}'.format(self._ip))
-            self._store.publish(actions['wifi_connected'])
+            self._store.publish(ACTIONS['wifi_connected'])
 
     async def monitor_connection(self):
         while True:
