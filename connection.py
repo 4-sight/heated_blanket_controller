@@ -33,13 +33,13 @@ class Connection:
             display.display_message(
                 'Wi-fi connected\n''Ip: {}'.format(self._ip))
 
-        store.subscribe(ACTIONS['wifi_connecting'], on_connecting)
+        store.subscribe(ACTIONS.WIFI_CONNECTING, on_connecting)
         store.subscribe(
-            ACTIONS['wifi_connection_failed'], on_connection_failed)
-        store.subscribe(ACTIONS['wifi_connected'], on_connected)
+            ACTIONS.WIFI_CONNECTION_FAILED, on_connection_failed)
+        store.subscribe(ACTIONS.WIFI_CONNECTED, on_connected)
 
     def connect(self) -> None:
-        self._store.publish(ACTIONS['wifi_connecting'])
+        self._store.publish(ACTIONS.WIFI_CONNECTING)
         self._wlan.connect(ssid, password)
 
         timeout = 10
@@ -51,10 +51,10 @@ class Connection:
             time.sleep(1)
 
         if self._wlan.status() != 3:
-            self._store.publish(ACTIONS['wifi_connection_failed'])
+            self._store.publish(ACTIONS.WIFI_CONNECTION_FAILED)
         else:
             self._ip = self._wlan.ifconfig()[0]
-            self._store.publish(ACTIONS['wifi_connected'])
+            self._store.publish(ACTIONS.WIFI_CONNECTED)
 
     async def monitor_connection(self):
         while True:

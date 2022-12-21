@@ -1,10 +1,19 @@
-ACTIONS = dict(
-    wifi_connecting="wifi_connecting",
-    wifi_connected="wifi_connected",
-    wifi_connection_failed="wifi_connection_failed",
-    wifi_connection_lost="wifi_connection_lost",
-    set_state="set_state_{}",
-)
+class Actions:
+    WIFI_CONNECTING: str
+    WIFI_CONNECTED: str
+    WIFI_CONNECTION_FAILED: str
+    WIFI_CONNECTION_LOST: str
+    SET_STATE: str
+
+    def __init__(self) -> None:
+        self.WIFI_CONNECTING = "wifi_connecting"
+        self.WIFI_CONNECTED = "wifi_connected"
+        self.WIFI_CONNECTION_FAILED = "wifi_connection_failed"
+        self.WIFI_CONNECTION_LOST = "wifi_connection_lost"
+        self.SET_STATE = "set_state_{}"
+
+
+ACTIONS = Actions()
 
 
 class PicoStore:
@@ -17,7 +26,7 @@ class PicoStore:
 
     def set_state(self, name: str, value) -> None:
         self[name] = value
-        self.publish(ACTIONS['set_state'].format(name))
+        self.publish(ACTIONS.SET_STATE.format(name))
 
     def subscribe(self, event: str, callback) -> None:
         if event not in self._events.keys():
