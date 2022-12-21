@@ -4,6 +4,8 @@ class Actions:
     WIFI_CONNECTION_FAILED: str
     WIFI_CONNECTION_LOST: str
     SET_STATE: str
+    CLIENT_CONNECTED: str
+    CLIENT_DISCONNECTED: str
 
     def __init__(self) -> None:
         self.WIFI_CONNECTING = "wifi_connecting"
@@ -11,6 +13,8 @@ class Actions:
         self.WIFI_CONNECTION_FAILED = "wifi_connection_failed"
         self.WIFI_CONNECTION_LOST = "wifi_connection_lost"
         self.SET_STATE = "set_state_{}"
+        self.CLIENT_CONNECTED = "client_connected"
+        self.CLIENT_DISCONNECTED = "client_disconnected"
 
 
 ACTIONS = Actions()

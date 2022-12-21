@@ -23,22 +23,8 @@ class Connection:
         self._store = store
         self._display = display
 
-        def on_connecting():
-            display.display_message('Connecting to wi-fi...')
-
-        def on_connection_failed():
-            display.display_message('Wi-fi connection failed')
-
-        def on_connected():
-            display.display_message(
-                'Wi-fi connected\n''Ip: {}'.format(self._ip))
-
-        store.subscribe(ACTIONS.WIFI_CONNECTING, on_connecting)
-        store.subscribe(
-            ACTIONS.WIFI_CONNECTION_FAILED, on_connection_failed)
-        store.subscribe(ACTIONS.WIFI_CONNECTED, on_connected)
-
     def connect(self) -> None:
+        self._display.display_message('Connecting to wi-fi...')
         self._store.publish(ACTIONS.WIFI_CONNECTING)
         self._wlan.connect(ssid, password)
 
@@ -51,9 +37,12 @@ class Connection:
             time.sleep(1)
 
         if self._wlan.status() != 3:
+            self._display.display_message('Wi-fi connection failed')
             self._store.publish(ACTIONS.WIFI_CONNECTION_FAILED)
         else:
             self._ip = self._wlan.ifconfig()[0]
+            self._display.display_message(
+                'Wi-fi connected\n''Ip: {}'.format(self._ip))
             self._store.publish(ACTIONS.WIFI_CONNECTED)
 
     async def monitor_connection(self):
