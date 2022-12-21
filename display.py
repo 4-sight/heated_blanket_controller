@@ -2,47 +2,60 @@ import uasyncio as asyncio
 from pimoroni import Button
 from picographics import PicoGraphics, DISPLAY_PICO_DISPLAY_2, PEN_P4
 
-display = PicoGraphics(display=DISPLAY_PICO_DISPLAY_2,
-                       pen_type=PEN_P4, rotate=0)
-display.set_backlight(0.5)
-display.set_font("bitmap8")
 
-button_a = Button(12)
-button_b = Button(13)
-button_x = Button(14)
-button_y = Button(15)
+class Pens:
+    _display: PicoGraphics
 
-WHITE = display.create_pen(255, 255, 255)
-BLACK = display.create_pen(0, 0, 0)
-CYAN = display.create_pen(0, 255, 255)
-MAGENTA = display.create_pen(255, 0, 255)
-YELLOW = display.create_pen(255, 255, 0)
-GREEN = display.create_pen(0, 255, 0)
+    def __init__(self, display) -> None:
+        self._display = display
+        self.WHITE = display.create_pen(255, 255, 255)
+        self.BLACK = display.create_pen(0, 0, 0)
+        self.CYAN = display.create_pen(0, 255, 255)
+        self.MAGENTA = display.create_pen(255, 0, 255)
+        self.YELLOW = display.create_pen(255, 255, 0)
+        self.GREEN = display.create_pen(0, 255, 0)
 
 
-def clear():
-    display.set_pen(BLACK)
-    display.clear()
-    display.update()
+class Display:
+    _display: PicoGraphics
+    _pens: Pens
+    _button_a = Button(12)
+    _button_b = Button(13)
+    _button_x = Button(14)
+    _button_y = Button(15)
 
+    def __init__(self) -> None:
+        self._display = PicoGraphics(display=DISPLAY_PICO_DISPLAY_2,
+                                     pen_type=PEN_P4, rotate=0)
+        self._display.set_backlight(0.5)
+        self._display.set_font("bitmap8")
+        self._pens = Pens(self._display)
+        self.display_message("display setup")
 
-async def display_message_async(message: str, duration: int):
-    print(message)
-    time = 0
+    def clear(self):
+        display = self._display
+        display.set_pen(self._pens.BLACK)
+        display.clear()
+        display.update()
 
-    while time < duration:
-        clear()
-        display.set_pen(GREEN)
+    def display_message(self, message: str) -> None:
+        display = self._display
+        print(message)
+
+        self.clear()
+        display.set_pen(self._pens.GREEN)
         display.text(message, 10, 10, 240, 4)
         display.update()
-        await asyncio.sleep(1)
-        time += 1
 
+    async def display_message_async(self, message: str, duration: int):
+        print(message)
+        display = self._display
+        time = 0
 
-def display_message(message: str):
-    print(message)
-
-    clear()
-    display.set_pen(GREEN)
-    display.text(message, 10, 10, 240, 4)
-    display.update()
+        while time < duration:
+            self.clear()
+            display.set_pen(self._pens.GREEN)
+            display.text(message, 10, 10, 240, 4)
+            display.update()
+            await asyncio.sleep(1)
+            time += 1
