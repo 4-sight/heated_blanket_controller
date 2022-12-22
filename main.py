@@ -2,20 +2,20 @@ import uasyncio as asyncio
 from store import PicoStore
 from display import Display
 from connection import Connection
-from server import serve_client
+from server import Server
+from control import Control
 
 
 async def main():
 
-    store = PicoStore()
     display = Display()
+    store = PicoStore(display)
     connection = Connection(store, display)
-    connection.connect()
+    server = Server(store, display)
+    control = Control(store, display)
 
-    display.display_message("Setting up webserver...")
-    server = serve_client(store, display)
-    asyncio.create_task(asyncio.start_server(server, "0.0.0.0", 80))
-    display.display_message("Server listening...")
+    connection.connect()
+    asyncio.create_task(server.start())
     asyncio.create_task(connection.monitor_connection())
 
     while True:

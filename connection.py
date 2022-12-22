@@ -4,8 +4,9 @@ import uasyncio as asyncio
 import rp2
 import network
 import time
-from store import PicoStore, ACTIONS
+from store import PicoStore
 from display import Display
+from actions import ACTIONS
 
 ssid = secrets['ssid']
 password = secrets['pw']

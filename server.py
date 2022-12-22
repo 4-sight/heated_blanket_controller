@@ -1,13 +1,26 @@
 import json
-from store import PicoStore, ACTIONS
+from actions import ACTIONS
+from store import PicoStore
 from display import Display
+import uasyncio as asyncio
 
 
-def serve_client(store: PicoStore, display: Display):
-    async def _inner(reader, writer):
+class Server:
+    _store: PicoStore
+    _display: Display
 
-        display.display_message("Client connected")
-        store.publish(ACTIONS.CLIENT_CONNECTED)
+    def __init__(self, store: PicoStore, display: Display) -> None:
+        self._store = store
+        self._display = display
+
+    async def start(self):
+        self._display.display_message("Setting up webserver...")
+        asyncio.create_task(asyncio.start_server(
+            self._serve_client, "0.0.0.0", 80))
+        self._display.display_message("Server listening...")
+
+    async def _serve_client(self, reader, writer):
+        self._store.publish(ACTIONS.CLIENT_CONNECTED)
 
         req_buffer = await reader.read(4096)
         req = parse_http_request(req_buffer)
@@ -25,6 +38,8 @@ def serve_client(store: PicoStore, display: Display):
                 await serve_page(writer, "home")
 
             elif route in [
+                "/control_onboard",
+                "/control_external_led",
                 "/404"
             ]:
                 await serve_page(writer, route.replace('/', ''))
@@ -37,17 +52,32 @@ def serve_client(store: PicoStore, display: Display):
                 # print(req['body'])
                 body = json.loads(req['body'])
 
-                store.set_state("onboard_led", body['led'])
+                self._store.set_state("onboard_led", body['led'])
+
+                writer.write(
+                    'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
+
+            if route == "/api/external_led_pulse/":
+                # print(req['body'])
+                body = json.loads(req['body'])
+
+                if 'rate' in body:
+                    rate = int(body['rate'])
+                    self._store.set_state("pulse_led", rate)
+
+                writer.write(
+                    'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
+
+            if route == "/api/stop_pulse/":
+                self._store.publish(ACTIONS.PULSE_STOP)
 
                 writer.write(
                     'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
 
         await writer.drain()
         await writer.wait_closed()
-        display.display_message("Client disconnected")
-        store.publish(ACTIONS.CLIENT_DISCONNECTED)
+        self._store.publish(ACTIONS.CLIENT_DISCONNECTED)
 
-    return _inner
 
 # =============================================================
 
