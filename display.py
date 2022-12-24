@@ -19,10 +19,7 @@ class Pens:
 class Display:
     _display: PicoGraphics
     _pens: Pens
-    _button_a = Button(12)
-    _button_b = Button(13)
-    _button_x = Button(14)
-    _button_y = Button(15)
+    _prev_message: str
 
     def __init__(self) -> None:
         self._display = PicoGraphics(display=DISPLAY_PICO_DISPLAY_2,
@@ -30,6 +27,7 @@ class Display:
         self._display.set_backlight(0.5)
         self._display.set_font("bitmap8")
         self._pens = Pens(self._display)
+        self._prev_message = ""
         self.display_message("display setup")
 
     def clear(self):
@@ -40,12 +38,13 @@ class Display:
 
     def display_message(self, message: str) -> None:
         display = self._display
-        print(message)
 
-        self.clear()
-        display.set_pen(self._pens.GREEN)
-        display.text(message, 10, 10, 240, 4)
-        display.update()
+        if message != self._prev_message:
+            self.clear()
+            display.set_pen(self._pens.GREEN)
+            display.text(message, 10, 10, 240, 4)
+            self._prev_message = message
+            display.update()
 
     async def display_message_async(self, message: str, duration: int):
         print(message)

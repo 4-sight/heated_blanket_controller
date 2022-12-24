@@ -4,9 +4,8 @@ import uasyncio as asyncio
 import rp2
 import network
 import time
-from store import PicoStore
-from display import Display
 from actions import ACTIONS
+from logger import Logger
 
 ssid = secrets['ssid']
 password = secrets['pw']
@@ -14,19 +13,17 @@ password = secrets['pw']
 
 class Connection:
     _wlan: WLAN
-    _store: PicoStore
-    _display: Display
+    _logger: Logger
 
-    def __init__(self, store: PicoStore, display: Display) -> None:
+    def __init__(self, publisher, logger) -> None:
         rp2.country('EN')
         self._wlan = WLAN(network.STA_IF)
         self._wlan.active(True)
-        self._store = store
-        self._display = display
+        self._logger = logger
+        self._publish = publisher
 
     def connect(self) -> None:
-        self._display.display_message('Connecting to wi-fi...')
-        self._store.publish(ACTIONS.WIFI_CONNECTING)
+        self._publish(ACTIONS.WIFI_CONNECTING, None)
         self._wlan.connect(ssid, password)
 
         timeout = 10
@@ -34,25 +31,21 @@ class Connection:
             if self._wlan.status() < 0 or self._wlan.status() >= 3:
                 break
             timeout -= 1
-            self._display.display_message('Waiting for connection...')
+            self._logger.log('log', 'Waiting for connection...')
             time.sleep(1)
 
         if self._wlan.status() != 3:
-            self._display.display_message('Wi-fi connection failed')
-            self._store.publish(ACTIONS.WIFI_CONNECTION_FAILED)
+            self._publish(ACTIONS.WIFI_CONNECTION_FAILED, self._wlan.status())
         else:
-            self._ip = self._wlan.ifconfig()[0]
-            self._display.display_message(
-                'Wi-fi connected\n''Ip: {}'.format(self._ip))
-            self._store.publish(ACTIONS.WIFI_CONNECTED)
+            self._publish(ACTIONS.WIFI_CONNECTED, self._wlan.ifconfig())
 
     async def monitor_connection(self):
         while True:
             await asyncio.sleep(20)
-            self._display.display_message('checking connection status...')
+            self._logger.log('debug', 'checking connection status...')
 
             if self._wlan.status() != 3:
-                self._display.display_message('Connection lost')
+                self._logger.log('warn', 'Connection lost')
                 self.connect()
             else:
-                self._display.display_message('Connection healthy')
+                self._logger.log('debug', 'Connection healthy')
