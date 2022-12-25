@@ -29,21 +29,11 @@ class Server:
         # GET
         if method == "GET":
 
-            if route.startswith("/public"):
-                await serve_public_asset(writer, route)
-
-            elif route == "/":
-                await serve_page(writer, "home")
-
-            elif route in [
-                "/control_onboard",
-                "/control_external_led",
-                "/404"
-            ]:
-                await serve_page(writer, route.replace('/', ''))
+            if route.startswith("/app"):
+                await serve_app(writer)
 
             else:
-                await serve_page(writer, "404")
+                await serve_public_asset(writer, route)
 
         if method == "POST":
             if route == "/api/onboard_led/":
@@ -63,18 +53,10 @@ class Server:
 # =============================================================
 
 
-def get_html(page_name):
-    path = "./pages/" + page_name + ".html"
+async def serve_app(writer):
+    path = "./dist/index.html"
     with open(path, 'r') as file:
         html = file.read()
-
-    return html
-
-# =============================================================
-
-
-async def serve_page(writer, page_name):
-    html = get_html(page_name)
 
     writer.write('HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
     writer.write(html)
@@ -83,24 +65,33 @@ async def serve_page(writer, page_name):
 # =============================================================
 
 async def serve_public_asset(writer, path: str):
-    asset = open("." + path)
-    response = asset.read()
+    try:
+        asset = open("./dist" + path)
+        response = asset.read()
 
-    if path.find(".css") > 0:
-        writer.write('HTTP/1.1 200 OK\r\nContent-type: text/css\r\n\r\n')
-        writer.write(response)
-    elif path.find(".js") > 0:
-        writer.write(
-            'HTTP/1.1 200 OK\r\nContent-type: text/javascript\r\n\r\n')
-        writer.write(response)
-    elif path.find(".ico") > 0:
-        writer.write('HTTP/1.1 200 OK\r\nContent-type: image/x-icon\r\n\r\n')
-        writer.write(response)
-    elif path.find(".png") > 0:
-        writer.write('HTTP/1.1 200 OK\r\nContent-type: image/png\r\n\r\n')
-        writer.write(response)
-
-# =============================================================
+        if path.find(".css") > 0:
+            writer.write('HTTP/1.1 200 OK\r\nContent-type: text/css\r\n\r\n')
+            writer.write(response)
+        elif path.find(".js") > 0:
+            writer.write(
+                'HTTP/1.1 200 OK\r\nContent-type: text/javascript\r\n\r\n')
+            writer.write(response)
+        elif path.find(".ico") > 0:
+            writer.write(
+                'HTTP/1.1 200 OK\r\nContent-type: image/x-icon\r\n\r\n')
+            writer.write(response)
+        elif path.find(".png") > 0:
+            writer.write('HTTP/1.1 200 OK\r\nContent-type: image/png\r\n\r\n')
+            writer.write(response)
+        elif path.find(".svg") > 0:
+            writer.write(
+                'HTTP/1.1 200 OK\r\nContent-type: image/svg+xml\r\n\r\n')
+            writer.write(response)
+        else:
+            print("unhandled file type")
+            writer.write('HTTP/1.1 500 Bad Request\r\n')
+    except:
+        writer.write('HTTP/1.1 404 Bad Request\r\n')
 
 # =============================================================
 

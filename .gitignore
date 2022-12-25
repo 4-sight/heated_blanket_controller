@@ -1,6 +1,9 @@
-# Dev
-.vscode/
-.picowgo
 
 # Env
 secrets.py
+
+# dependencies
+node_modules/
+Pico-W-Stub
+
+dist/

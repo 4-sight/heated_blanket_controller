@@ -1,0 +1,33 @@
+{
+    "python.linting.enabled": true,
+    "python.analysis.typeshedPaths": [
+        ".vscode\\Pico-W-Stub"
+    ],
+    "python.languageServer": "Pylance",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.extraPaths": [
+        ".vscode\\Pico-W-Stub\\stubs"
+    ],
+    "picowgo.syncFolder": "",
+    "picowgo.openOnStart": true,
+    "picowgo.pyIgnore": [
+        ".picowgo",
+        ".vscode",
+        ".gitignore",
+        ".git",
+        "project.pico-go",
+        "env",
+        "venv",
+        "client"
+    ],
+    "picowgo.syncFileTypes": "py,txt,log,json,xml,html,js,css,mpy,svg,png",
+    "cSpell.words": [
+        "ntptime",
+        "pimoroni",
+        "ssid",
+        "uasyncio",
+        "Warmz",
+        "wifi",
+        "wlan"
+    ]
+}
