@@ -38,7 +38,7 @@ class Server:
             if route == "/api/apply_preset/":
                 # print(req['body'])
                 body = json.loads(req['body'])
-                payload = {'preset': body['preset']}
+                payload = int(body['preset'])
                 self._events.publish(ACTIONS.APPLY_PRESET, payload)
 
                 writer.write(

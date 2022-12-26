@@ -6,6 +6,7 @@ from server import Server
 from inputs import Inputs
 import uasyncio as asyncio
 from events import Events, ACTIONS
+from control import Control
 
 
 class App:
@@ -15,6 +16,7 @@ class App:
     _logger: Logger
     _connection: Connection
     _server: Server
+    _control: Control
     _screen: str
 
     def __init__(self) -> None:
@@ -25,6 +27,7 @@ class App:
         self._inputs = Inputs(self._events)
         self._connection = Connection(self._events)
         self._server = Server(self._events)
+        self._control = Control(self._events)
         self._screen = ""
 
     def set_screen(self, screen: str) -> None:

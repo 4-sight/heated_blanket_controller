@@ -14,7 +14,7 @@ class Logger:
     _events: Events
 
     def __init__(self, events: Events) -> None:
-        self._level = 0
+        self._level = 1
         self._events = events
 
         self._events.subscribe(ACTIONS.LOG_DEBUG, self._log_debug)
