@@ -25,6 +25,7 @@ class Server:
 
         method = req['method']
         route: str = req['path']
+        self._logger.log("debug", route)
 
         # GET
         if method == "GET":
@@ -36,11 +37,11 @@ class Server:
                 await serve_public_asset(writer, route)
 
         if method == "POST":
-            if route == "/api/onboard_led/":
+            if route == "/api/apply_preset/":
                 # print(req['body'])
                 body = json.loads(req['body'])
-                payload = {'turn_on': body['led']}
-                self._publish(ACTIONS.SET_ONBOARD_LED, payload)
+                payload = {'preset': body['preset']}
+                self._publish(ACTIONS.APPLY_PRESET, payload)
 
                 writer.write(
                     'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')

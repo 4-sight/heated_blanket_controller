@@ -1,0 +1,10 @@
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  filter: drop-shadow(0 0 2em #ff7664aa);
+}
+
+.links {
+  display: flex;
+  justify-content: space-evenly;
+}

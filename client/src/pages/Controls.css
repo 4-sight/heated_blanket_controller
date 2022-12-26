@@ -1,0 +1,11 @@
+.presets {
+  display: flex;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  max-width: 60vw;
+}
+
+.presets-title {
+  color: #64707a;
+  font-size: 1.2rem;
+}

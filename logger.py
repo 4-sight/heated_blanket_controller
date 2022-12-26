@@ -15,7 +15,7 @@ class Logger:
 
     def __init__(self, clock: Clock) -> None:
         self.clock = clock
-        self._level = 0
+        self._level = 2
 
     def set_level(self, level: int) -> None:
         self._level = level

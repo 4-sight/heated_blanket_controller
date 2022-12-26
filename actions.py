@@ -9,6 +9,7 @@ class Actions:
 
     SET_ONBOARD_LED: str
     SET_HEATER: str
+    APPLY_PRESET: str
 
     BUTTON_PRESSED: str
 
@@ -23,6 +24,7 @@ class Actions:
 
         self.SET_ONBOARD_LED = "set_onboard_led"
         self.SET_HEATER = "set_heater"
+        self.APPLY_PRESET = "apply_preset"
 
         self.BUTTON_PRESSED = "button_pressed"
 
