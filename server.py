@@ -1,31 +1,29 @@
 import json
-from actions import ACTIONS
+from events import Events, ACTIONS
 import uasyncio as asyncio
-from logger import Logger
 
 
 class Server:
-    _logger: Logger
+    _events: Events
 
-    def __init__(self, publisher, logger) -> None:
-        self._logger = logger
-        self._publish = publisher
+    def __init__(self, events: Events) -> None:
+        self._events = events
 
     async def start(self):
-        self._logger.log('debug', "Setting up webserver...")
+        self._events.publish(ACTIONS.LOG_DEBUG, "Setting up webserver...")
         asyncio.create_task(asyncio.start_server(
             self._serve_client, "0.0.0.0", 80))
-        self._logger.log('info', "Server listening...")
+        self._events.publish(ACTIONS.LOG_VERBOSE, "Server listening...")
 
     async def _serve_client(self, reader, writer):
-        self._publish(ACTIONS.CLIENT_CONNECTED, None)
+        self._events.publish(ACTIONS.CLIENT_CONNECTED, None)
 
         req_buffer = await reader.read(4096)
         req = parse_http_request(req_buffer)
 
         method = req['method']
         route: str = req['path']
-        self._logger.log("debug", route)
+        self._events.publish(ACTIONS.LOG_DEBUG, route)
 
         # GET
         if method == "GET":
@@ -41,14 +39,14 @@ class Server:
                 # print(req['body'])
                 body = json.loads(req['body'])
                 payload = {'preset': body['preset']}
-                self._publish(ACTIONS.APPLY_PRESET, payload)
+                self._events.publish(ACTIONS.APPLY_PRESET, payload)
 
                 writer.write(
                     'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
 
         await writer.drain()
         await writer.wait_closed()
-        self._publish(ACTIONS.CLIENT_DISCONNECTED, None)
+        self._events.publish(ACTIONS.CLIENT_DISCONNECTED, None)
 
 
 # =============================================================

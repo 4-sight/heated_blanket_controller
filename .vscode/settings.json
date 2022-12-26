@@ -29,5 +29,7 @@
         "Warmz",
         "wifi",
         "wlan"
-    ]
+    ],
+    "editor.indentSize": "tabSize",
+    "editor.tabSize": 4
 }
