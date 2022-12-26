@@ -1,4 +1,5 @@
 class Events:
+    _events: dict[str, list]
 
     def __init__(self) -> None:
         self._events = dict()
@@ -41,4 +42,6 @@ class ACTIONS:
 
     BUTTON_PRESSED: str = "button_pressed"
 
+    DISPLAY_SET_SCREEN: str = "set_display_screen"
+    DISPLAY_ALERT: str = "display_alert"
     DISPLAY_MESSAGE: str = "display_message"

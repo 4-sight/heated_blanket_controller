@@ -25,20 +25,22 @@ class App:
         self._inputs = Inputs(self._events)
         self._connection = Connection(self._events)
         self._server = Server(self._events)
-        self._screen = "home"
+        self._screen = ""
 
     def set_screen(self, screen: str) -> None:
         print("set screen: ", screen)
         self._screen = screen
+        self._events.publish(ACTIONS.DISPLAY_SET_SCREEN, self._screen)
 
     def setup(self) -> None:
-        self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Beginning setup.")
-        self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Connecting to Wi-fi...")
+        self._events.publish(ACTIONS.DISPLAY_ALERT, "Beginning setup.")
+        self._events.publish(ACTIONS.DISPLAY_ALERT, "Connecting to Wi-fi...")
         self._connection.connect()
-        self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Wi-fi connected.")
-        self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Synchronising clock")
+        self._events.publish(ACTIONS.DISPLAY_ALERT, "Wi-fi connected.")
+        self._events.publish(ACTIONS.DISPLAY_ALERT, "Synchronising clock")
         self._clock.synchronise()
-        self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Setup finished.")
+        self._events.publish(ACTIONS.DISPLAY_ALERT, "Setup finished.")
+        self.set_screen("home")
 
     async def start(self) -> None:
         asyncio.create_task(self._server.start())
@@ -48,7 +50,6 @@ class App:
     async def run(self) -> None:
         self._events.subscribe(ACTIONS.BUTTON_PRESSED, self.handle_inputs)
         while True:
-            self.render()
             await asyncio.sleep(0.1)
 
     def handle_inputs(self, buttons) -> None:
@@ -75,13 +76,3 @@ class App:
                 self.set_screen('control')
             if buttons['b'].is_pressed:
                 self.set_screen('home')
-
-    def render(self) -> None:
-        if self._screen == "home":
-            self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Home")
-
-        elif self._screen == "settings":
-            self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Settings")
-
-        elif self._screen == "control":
-            self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Control")
