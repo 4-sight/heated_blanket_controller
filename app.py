@@ -19,8 +19,8 @@ class App:
 
     def __init__(self) -> None:
         self._events = Events()
-        self._display = Display()
-        self._clock = Clock()
+        self._display = Display(self._events)
+        self._clock = Clock(self._events)
         self._logger = Logger(self._events)
         self._inputs = Inputs(self._events)
         self._connection = Connection(self._events)
@@ -31,17 +31,14 @@ class App:
         print("set screen: ", screen)
         self._screen = screen
 
-    def display(self, message: str) -> None:
-        self._display.display_message(message)
-
     def setup(self) -> None:
-        self.display("Beginning setup.")
-        self.display("Connecting to Wi-fi...")
+        self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Beginning setup.")
+        self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Connecting to Wi-fi...")
         self._connection.connect()
-        self.display("Wi-fi connected.")
-        self.display("Synchronising clock")
+        self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Wi-fi connected.")
+        self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Synchronising clock")
         self._clock.synchronise()
-        self.display("Setup finished.")
+        self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Setup finished.")
 
     async def start(self) -> None:
         asyncio.create_task(self._server.start())
@@ -81,10 +78,10 @@ class App:
 
     def render(self) -> None:
         if self._screen == "home":
-            self.display("Home")
+            self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Home")
 
         elif self._screen == "settings":
-            self.display("Settings")
+            self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Settings")
 
         elif self._screen == "control":
-            self.display("Control")
+            self._events.publish(ACTIONS.DISPLAY_MESSAGE, "Control")

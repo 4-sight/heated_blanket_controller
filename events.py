@@ -40,3 +40,5 @@ class ACTIONS:
     APPLY_PRESET: str = "apply_preset"
 
     BUTTON_PRESSED: str = "button_pressed"
+
+    DISPLAY_MESSAGE: str = "display_message"
