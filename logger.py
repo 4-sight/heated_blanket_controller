@@ -1,5 +1,3 @@
-from clock import Clock
-
 LEVELS = {
     'debug': 0,
     'info': 1,
@@ -10,11 +8,9 @@ LEVELS = {
 
 
 class Logger:
-    _clock: Clock
     _level: int
 
-    def __init__(self, clock: Clock) -> None:
-        self.clock = clock
+    def __init__(self) -> None:
         self._level = 2
 
     def set_level(self, level: int) -> None:

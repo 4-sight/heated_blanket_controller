@@ -11,6 +11,3 @@ class Clock:
 
     def synchronise(self) -> None:
         ntptime.settime()
-
-    def get_timestamp(self) -> int:
-        return time.time()

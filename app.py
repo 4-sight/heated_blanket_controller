@@ -20,7 +20,7 @@ class App:
         self._display = Display()
         self._clock = Clock()
         self._events = dict()
-        self._logger = Logger(self._clock)
+        self._logger = Logger()
         self._inputs = Inputs(self.publish, self._logger)
         self._connection = Connection(self.publish, self._logger)
         self._server = Server(self.publish, self._logger)
