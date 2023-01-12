@@ -1,64 +1,58 @@
 from events import Events, ACTIONS
-from heater import Heater
-from machine import Pin
+from channel import Channel
+import uasyncio as asyncio
 
 
 class Control:
+    channel_1: Channel
+    channel_2: Channel
     _events: Events
-    _feet_1: Heater
-    _body_1: Heater
-    _feet_2: Heater
-    _body_2: Heater
 
     def __init__(self, events: Events) -> None:
         self._events = events
-        self._feet_1 = Heater("feet_1", Pin(1, Pin.OUT), events)
-        self._body_1 = Heater("body_1", Pin(2, Pin.OUT), events)
-        self._feet_2 = Heater("feet_2", Pin(3, Pin.OUT), events)
-        self._body_2 = Heater("body_2", Pin(4, Pin.OUT), events)
+        self.channel_1 = Channel(1, 1, 2, 26, events)
+        self.channel_2 = Channel(2, 3, 4, 27, events)
 
         self._events.subscribe(ACTIONS.APPLY_PRESET, self._handle_presets)
 
     def _handle_presets(self, preset: int) -> None:
         if preset == 1:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 1")
-            self._feet_1.set_level(9)
-            self._body_1.set_level(5)
-
-            self._feet_2.set_level(0)
-            self._body_2.set_level(0)
+            self.channel_1.set_levels(9, 5)
+            self.channel_2.set_levels(0, 0)
         elif preset == 2:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 2")
-            self._feet_1.set_level(9)
-            self._body_1.set_level(0)
-
-            self._feet_2.set_level(9)
-            self._body_2.set_level(0)
+            self.channel_1.set_levels(9, 0)
+            self.channel_2.set_levels(9, 0)
         elif preset == 3:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 3")
-            self._feet_1.set_level(9)
-            self._body_1.set_level(9)
-
-            self._feet_2.set_level(9)
-            self._body_2.set_level(9)
+            self.channel_1.set_levels(9, 9)
+            self.channel_2.set_levels(9, 9)
         elif preset == 4:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 4")
-            self._feet_1.set_level(5)
-            self._body_1.set_level(5)
-
-            self._feet_2.set_level(5)
-            self._body_2.set_level(5)
+            self.channel_1.set_levels(5, 5)
+            self.channel_2.set_levels(5, 5)
         elif preset == 5:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 5")
-            self._feet_1.set_level(1)
-            self._body_1.set_level(1)
-
-            self._feet_2.set_level(1)
-            self._body_2.set_level(1)
+            self.channel_1.set_levels(1, 1)
+            self.channel_2.set_levels(1, 1)
         elif preset == 6:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 6")
-            self._feet_1.set_level(9)
-            self._body_1.set_level(5)
+            self.channel_1.set_levels(9, 5)
+            self.channel_2.set_levels(9, 5)
 
-            self._feet_2.set_level(9)
-            self._body_2.set_level(5)
+    def test_channels(self) -> None:
+        asyncio.create_task(self.channel_1.run_test())
+        asyncio.create_task(self.channel_2.run_test())
+
+    async def debug_channels(self) -> None:
+        while True:
+            safety_val_1 = self.channel_1.get_safety_mv(1)
+            safety_val_2 = self.channel_2.get_safety_mv(1)
+
+            self._events.publish(ACTIONS.SAFETY_OUTPUT_READ, {
+                'safety_1': safety_val_1,
+                'safety_2': safety_val_2
+            })
+
+            await asyncio.sleep(0.1)

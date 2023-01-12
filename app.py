@@ -49,6 +49,8 @@ class App:
         asyncio.create_task(self._server.start())
         asyncio.create_task(self._connection.monitor_connection())
         asyncio.create_task(self._inputs.listen())
+        asyncio.create_task(self._control.debug_channels())
+        asyncio.create_task(self._control.test_channels())
 
     async def run(self) -> None:
         self._events.subscribe(ACTIONS.BUTTON_PRESSED, self.handle_inputs)
