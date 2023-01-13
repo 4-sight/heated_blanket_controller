@@ -194,11 +194,12 @@ class Channel:
         self.feet.turn_off()
         self.body.turn_off()
 
-    def on_error(self):
-        self.turn_off()
-        self.__status__ = CHANNEL_STATUS_ERROR
-        self.feet.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
-        self.body.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
+    def on_error(self, payload):
+        if payload['channel'] == self.index:
+            self.turn_off()
+            self.__status__ = CHANNEL_STATUS_ERROR
+            self.feet.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
+            self.body.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
 
     def update_safety_range(self):
         feet_live = self.feet.is_live
