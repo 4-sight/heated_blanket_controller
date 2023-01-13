@@ -36,21 +36,15 @@ class App:
         self._events.publish(ACTIONS.DISPLAY_SET_SCREEN, self._screen)
 
     def setup(self) -> None:
-        self._events.publish(ACTIONS.DISPLAY_ALERT, "Beginning setup.")
-        self._events.publish(ACTIONS.DISPLAY_ALERT, "Connecting to Wi-fi...")
         self._connection.connect()
-        self._events.publish(ACTIONS.DISPLAY_ALERT, "Wi-fi connected.")
-        self._events.publish(ACTIONS.DISPLAY_ALERT, "Synchronising clock")
-        self._clock.synchronise()
-        self._events.publish(ACTIONS.DISPLAY_ALERT, "Setup finished.")
         self.set_screen("home")
 
     async def start(self) -> None:
         asyncio.create_task(self._server.start())
         asyncio.create_task(self._connection.monitor_connection())
         asyncio.create_task(self._inputs.listen())
-        asyncio.create_task(self._control.debug_channels())
         asyncio.create_task(self._control.test_channels())
+        asyncio.create_task(self._control.debug_channels())
 
     async def run(self) -> None:
         self._events.subscribe(ACTIONS.BUTTON_PRESSED, self.handle_inputs)

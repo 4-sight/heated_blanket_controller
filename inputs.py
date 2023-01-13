@@ -22,6 +22,7 @@ class Inputs:
             for button in self.buttons.values():
                 if button.read():
                     self._events.publish(ACTIONS.BUTTON_PRESSED,
-                                         payload=self.buttons)
+                                         payload=self.buttons,
+                                         log_level=ACTIONS.LOG_INFO)
 
             await asyncio.sleep(0.1)

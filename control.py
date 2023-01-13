@@ -41,18 +41,16 @@ class Control:
             self.channel_1.set_levels(9, 5)
             self.channel_2.set_levels(9, 5)
 
-    def test_channels(self) -> None:
-        asyncio.create_task(self.channel_1.run_test())
-        asyncio.create_task(self.channel_2.run_test())
+    async def test_channels(self) -> None:
+        asyncio.create_task(self.channel_1.start_test())
+        asyncio.create_task(self.channel_2.start_test())
 
     async def debug_channels(self) -> None:
         while True:
             safety_val_1 = self.channel_1.get_safety_mv(1)
             safety_val_2 = self.channel_2.get_safety_mv(1)
 
-            self._events.publish(ACTIONS.SAFETY_OUTPUT_READ, {
-                'safety_1': safety_val_1,
-                'safety_2': safety_val_2
-            })
+            self._events.publish(ACTIONS.DISPLAY_MESSAGE,
+                                 "'safety_1': {}\n'safety_2': {}".format(safety_val_1, safety_val_2))
 
             await asyncio.sleep(0.1)

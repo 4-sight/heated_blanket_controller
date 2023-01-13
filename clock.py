@@ -11,5 +11,9 @@ class Clock:
         self._events = events
         self._rtc = RTC()
 
-    def synchronise(self) -> None:
+        events.subscribe(ACTIONS.WIFI_CONNECTED, self.synchronise)
+
+    def synchronise(self, _payload) -> None:
+        self._events.publish(ACTIONS.LOG_VERBOSE,
+                             "synchronising onboard clock")
         ntptime.settime()

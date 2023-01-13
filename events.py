@@ -1,23 +1,3 @@
-class Events:
-    _events: dict[str, list]
-
-    def __init__(self) -> None:
-        self._events = dict()
-
-    def subscribe(self, event: str, callback) -> None:
-        if event not in self._events.keys():
-            self._events[event] = []
-        self._events[event].append(callback)
-
-    def publish(self, event: str, payload) -> None:
-        for callback in self._events[ACTIONS.LOG_VERBOSE]:
-            callback(
-                "Event: {}\n\t\tPayload: {}".format(event, payload))
-        if event in self._events.keys():
-            for callback in self._events[event]:
-                callback(payload)
-
-
 class ACTIONS:
     LOG_DEBUG: str = "log_debug"
     LOG_VERBOSE: str = "log_verbose"
@@ -55,3 +35,23 @@ class ACTIONS:
     HEATING_ZONE_IN_RANGE: str = "Heating zone in range"
     HEATING_CHANNEL_OUT_OF_RANGE_ERROR: str = "Error: heating channel out of range"
     HEATING_CHANNEL_TEST_PASSED: str = "heating channel test passed"
+
+
+class Events:
+    _events: dict[str, list]
+
+    def __init__(self) -> None:
+        self._events = dict()
+
+    def subscribe(self, event: str, callback) -> None:
+        if event not in self._events.keys():
+            self._events[event] = []
+        self._events[event].append(callback)
+
+    def publish(self, event: str, payload, log_level=ACTIONS.LOG_DEBUG) -> None:
+        for callback in self._events[log_level]:
+            callback(
+                "Event: {}\n\t\tPayload: {}".format(event, payload))
+        if event in self._events.keys():
+            for callback in self._events[event]:
+                callback(payload)

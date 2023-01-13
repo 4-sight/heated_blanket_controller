@@ -37,6 +37,9 @@ class Channel:
         self._safety_range = MIN_RANGE
         self.__status__ = CHANNEL_STATUS_INITIAL
 
+        events.subscribe(ACTIONS.CHANNEL_SAFETY_DETECTED,
+                         self._test_heating_zones)
+
     def set_levels(self, feet_level: int, body_level: int) -> None:
         if self.__status__ >= CHANNEL_STATUS_OK:
             self.feet.set_level(feet_level)
@@ -61,7 +64,10 @@ class Channel:
             attempt = (attempt + 1) % 10
 
             self._events.publish(
-                ACTIONS.CHANNEL_SAFETY_NOT_PRESENT, "channel: {}".format(self.index))
+                ACTIONS.CHANNEL_SAFETY_NOT_PRESENT,
+                "channel: {} safety val: {}".format(
+                    self.index, init_safety_val),
+                log_level=ACTIONS.LOG_WARN)
 
             await asyncio.sleep(retry_interval)
 
@@ -71,7 +77,8 @@ class Channel:
             init_safety_val = self.get_safety_mv()
 
         self._events.publish(ACTIONS.CHANNEL_SAFETY_DETECTED,
-                             "channel: {}".format(self.index))
+                             "channel: {}".format(self.index),
+                             log_level=ACTIONS.LOG_INFO)
         self.__status__ = CHANNEL_STATUS_CONNECTED
 
     async def _test_zones(self, zones: list[Heater]) -> None:
@@ -103,14 +110,15 @@ class Channel:
                 zone.set_status(zone_status)
 
             self._events.publish(
-                ACTIONS.HEATING_ZONE_OUT_OF_RANGE_ERROR, payload)
+                ACTIONS.HEATING_ZONE_OUT_OF_RANGE_ERROR, payload, log_level=ACTIONS.LOG_ERROR)
         else:
             for zone in zones:
                 zone.set_status(ZONE_STATUS_OK)
 
-            self._events.publish(ACTIONS.HEATING_ZONE_IN_RANGE, payload)
+            self._events.publish(ACTIONS.HEATING_ZONE_IN_RANGE,
+                                 payload, log_level=ACTIONS.LOG_INFO)
 
-    async def run_test(self) -> None:
+    async def start_test(self) -> None:
         if self.__status__ < CHANNEL_STATUS_INITIAL:
             self._events.publish(
                 ACTIONS.LOG_ERROR, "TEST ABORTED, invalid channel status")
@@ -120,23 +128,28 @@ class Channel:
         self.feet.turn_off()
         self.body.turn_off()
         await asyncio.sleep(0.5)
-        await self._detect_safety_output()
+        asyncio.create_task(self._detect_safety_output())
 
-        # test feet heating zone
-        self._safety_range = FEET_ONLY_RANGE
-        await self._test_zones([self.feet])
+    def _test_heating_zones(self, _payload) -> None:
 
-        # test body heating zone
-        self._safety_range = BODY_ONLY_RANGE
-        await self._test_zones([self.body])
+        async def _test():
+            # test feet heating zone
+            self._safety_range = FEET_ONLY_RANGE
+            await self._test_zones([self.feet])
 
-        # test dual zones
-        self._safety_range = DUAL_ZONE_RANGE
-        await self._test_zones([self.feet, self.body])
+            # test body heating zone
+            self._safety_range = BODY_ONLY_RANGE
+            await self._test_zones([self.body])
 
-        self._events.publish(ACTIONS.HEATING_CHANNEL_TEST_PASSED,
-                             "channel: {}".format(self.index))
-        self.__status__ = CHANNEL_STATUS_OK
+            # test dual zones
+            self._safety_range = DUAL_ZONE_RANGE
+            await self._test_zones([self.feet, self.body])
+
+            self._events.publish(ACTIONS.HEATING_CHANNEL_TEST_PASSED,
+                                 "channel: {}".format(self.index), log_level=ACTIONS.LOG_INFO)
+            self.__status__ = CHANNEL_STATUS_OK
+
+        asyncio.create_task(_test())
 
     async def monitor_safety_val(self) -> None:
         while True:

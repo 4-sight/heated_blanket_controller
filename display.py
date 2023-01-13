@@ -41,6 +41,7 @@ class Display:
         self._events.subscribe(ACTIONS.DISPLAY_SET_SCREEN, self._set_screen)
         self._events.subscribe(ACTIONS.SAFETY_OUTPUT_READ,
                                self._render_safety_output)
+        self._events.subscribe(ACTIONS.DISPLAY_MESSAGE, self._display_message)
         self._push_alert("display setup")
 
     def _clear(self):
