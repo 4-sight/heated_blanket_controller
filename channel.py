@@ -5,7 +5,7 @@ import uasyncio as asyncio
 
 CONVERSION_FACTOR = 3.3 / 65535
 MIN_RANGE = range(0, 60)
-FEET_ONLY_RANGE = range(125, 175)
+FEET_ONLY_RANGE = range(150, 200)
 BODY_ONLY_RANGE = range(150, 200)
 DUAL_ZONE_RANGE = range(150, 350)
 MAX_RETRY_INTERVAL = 100
@@ -77,7 +77,7 @@ class Channel:
             init_safety_val = self.get_safety_mv()
 
         self._events.publish(ACTIONS.CHANNEL_SAFETY_DETECTED,
-                             "channel: {}".format(self.index),
+                             payload={'channel': self.index},
                              log_level=ACTIONS.LOG_INFO)
         self.__status__ = CHANNEL_STATUS_CONNECTED
 
@@ -132,7 +132,7 @@ class Channel:
         await asyncio.sleep(0.5)
         asyncio.create_task(self._detect_safety_output())
 
-    def _test_heating_zones(self, _payload) -> None:
+    def _test_heating_zones(self, payload) -> None:
 
         async def _test():
             # test feet heating zone
@@ -152,7 +152,8 @@ class Channel:
                                      "channel: {}".format(self.index), log_level=ACTIONS.LOG_INFO)
                 self.__status__ = CHANNEL_STATUS_OK
 
-        asyncio.create_task(_test())
+        if payload['channel'] == self.index:
+            asyncio.create_task(_test())
 
     async def monitor_safety_val(self) -> None:
         while True:
