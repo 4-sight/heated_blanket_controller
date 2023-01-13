@@ -1,7 +1,8 @@
 from events import Events, ACTIONS
-from heater import ZONE_STATUS_ERROR_SAFETY_HIGH, ZONE_STATUS_ERROR_SAFETY_LOW, ZONE_STATUS_OK, Heater
+from heater import ZONE_STATUS_ERROR_SAFETY_HIGH, ZONE_STATUS_ERROR_SAFETY_LOW, ZONE_STATUS_ERROR_CHANNEL_ERROR, ZONE_STATUS_OK, Heater
 from machine import Pin, ADC
 import uasyncio as asyncio
+from uasyncio import Task
 
 CONVERSION_FACTOR = 3.3 / 65535
 MIN_RANGE = range(0, 60)
@@ -22,6 +23,7 @@ class Channel:
     body: Heater
     safety: ADC
     index: int
+    _monitoring: Task | None
     _events: Events
     _safety_range: range
     __status__: int
@@ -36,14 +38,22 @@ class Channel:
         self.safety = ADC(safety_pin)
         self._safety_range = MIN_RANGE
         self.__status__ = CHANNEL_STATUS_INITIAL
+        self._monitoring = None
 
         events.subscribe(ACTIONS.CHANNEL_SAFETY_DETECTED,
                          self._test_heating_zones)
+        events.subscribe(ACTIONS.HEATING_CHANNEL_OUT_OF_RANGE_ERROR,
+                         self.on_error)
 
     def set_levels(self, feet_level: int, body_level: int) -> None:
         if self.__status__ >= CHANNEL_STATUS_OK:
-            self.feet.set_level(feet_level)
-            self.body.set_level(body_level)
+
+            if feet_level + body_level == 0:
+                self.turn_off()
+            else:
+                self.feet.set_level(feet_level)
+                self.body.set_level(body_level)
+                self.monitor_safety_val()
 
     def get_safety_mv(self, sample_size=5) -> int:
         avg_volts = 0
@@ -155,14 +165,22 @@ class Channel:
         if payload['channel'] == self.index:
             asyncio.create_task(_test())
 
-    async def monitor_safety_val(self) -> None:
-        while True:
-            safety_val = self.get_safety_mv(1)
+    def monitor_safety_val(self) -> None:
+        if self._monitoring == None:
 
-            self._events.publish(ACTIONS.SAFETY_OUTPUT_READ,
-                                 'CHANNEL_{} SAFETY_VAL: {}'.format(self.index, safety_val))
+            async def _monitor():
+                while True:
+                    self.update_safety_range()
+                    safety_val = self.get_safety_mv(1)
 
-            await asyncio.sleep(0.01)
+                    if safety_val not in self._safety_range:
+
+                        self._events.publish(ACTIONS.HEATING_CHANNEL_OUT_OF_RANGE_ERROR,
+                                             payload={'channel': self.index, 'safety_val': safety_val}, log_level=ACTIONS.LOG_ERROR)
+
+                    await asyncio.sleep(0.01)
+
+            self._monitoring = asyncio.create_task(_monitor())
 
     def get_status(self):
         return {
@@ -171,3 +189,26 @@ class Channel:
             'feet_status': self.feet.get_status(),
             'body_status': self.body.get_status()
         }
+
+    def turn_off(self):
+        self.feet.turn_off()
+        self.body.turn_off()
+
+    def on_error(self):
+        self.turn_off()
+        self.__status__ = CHANNEL_STATUS_ERROR
+        self.feet.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
+        self.body.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
+
+    def update_safety_range(self):
+        feet_live = self.feet.is_live
+        body_live = self.body.is_live
+
+        if feet_live & body_live:
+            self._safety_range = DUAL_ZONE_RANGE
+        elif feet_live:
+            self._safety_range = FEET_ONLY_RANGE
+        elif body_live:
+            self._safety_range = BODY_ONLY_RANGE
+        else:
+            self._safety_range = MIN_RANGE

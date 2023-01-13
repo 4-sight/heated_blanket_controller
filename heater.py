@@ -7,6 +7,7 @@ ZONE_STATUS_INITIAL = 0
 ZONE_STATUS_OK = 3
 ZONE_STATUS_ERROR_SAFETY_LOW = -1
 ZONE_STATUS_ERROR_SAFETY_HIGH = -2
+ZONE_STATUS_ERROR_CHANNEL_ERROR = -3
 
 
 class Heater:
@@ -16,6 +17,7 @@ class Heater:
     _output: Pin
     _running: Task | None = None
     __status__: int
+    is_live: bool
 
     def __init__(self, name: str, output: Pin, events: Events) -> None:
         self._events = events
@@ -23,6 +25,7 @@ class Heater:
         self.name = name
         self._output = output
         self.__status__ = ZONE_STATUS_INITIAL
+        self.is_live = False
 
     def set_status(self, statusCode) -> None:
         self.__status__ = statusCode
@@ -44,6 +47,7 @@ class Heater:
         async def run():
             if self._level <= 0:
                 self._output.value(0)
+                self.is_live = False
                 return
 
             while True:
@@ -51,18 +55,21 @@ class Heater:
                 self._events.publish(
                     ACTIONS.LOG_INFO, self.name + " on")
                 self._output.value(1)
+                self.is_live = True
                 await asyncio.sleep(level)
 
                 if level < 10:
                     self._events.publish(
                         ACTIONS.LOG_INFO, self.name + " off")
                     self._output.value(0)
+                    self.is_live = False
                     await asyncio.sleep(10 - level)
 
         self._running = asyncio.create_task(run())
 
     def turn_off(self) -> None:
         self._output.value(0)
+        self.is_live = False
         self._level = 0
         if self._running != None:
             self._running.cancel()
@@ -76,6 +83,8 @@ class Heater:
 
         self.turn_off()
         self._output.value(1)
+        self.is_live = True
         self._events.publish(ACTIONS.HEATER_ENERGISED, self.name)
         await asyncio.sleep(duration)
         self._output.value(0)
+        self.is_live = False
