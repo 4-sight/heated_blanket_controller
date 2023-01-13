@@ -147,9 +147,10 @@ class Channel:
             self._safety_range = DUAL_ZONE_RANGE
             await self._test_zones([self.feet, self.body])
 
-            self._events.publish(ACTIONS.HEATING_CHANNEL_TEST_PASSED,
-                                 "channel: {}".format(self.index), log_level=ACTIONS.LOG_INFO)
-            self.__status__ = CHANNEL_STATUS_OK
+            if self.__status__ >= 2:
+                self._events.publish(ACTIONS.HEATING_CHANNEL_TEST_PASSED,
+                                     "channel: {}".format(self.index), log_level=ACTIONS.LOG_INFO)
+                self.__status__ = CHANNEL_STATUS_OK
 
         asyncio.create_task(_test())
 
