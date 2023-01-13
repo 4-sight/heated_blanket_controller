@@ -4,10 +4,10 @@ from machine import Pin, ADC
 import uasyncio as asyncio
 
 CONVERSION_FACTOR = 3.3 / 65535
-MIN_RANGE = range(0, 30)
-FEET_ONLY_RANGE = range(350, 450)
-BODY_ONLY_RANGE = range(450, 550)
-DUAL_ZONE_RANGE = range(700, 750)
+MIN_RANGE = range(0, 60)
+FEET_ONLY_RANGE = range(125, 175)
+BODY_ONLY_RANGE = range(150, 200)
+DUAL_ZONE_RANGE = range(150, 350)
 MAX_RETRY_INTERVAL = 100
 
 CHANNEL_STATUS_INITIAL = 0
@@ -88,9 +88,11 @@ class Channel:
             return
 
         tested_zones: list[str] = []
+        test_duration = 2
         for zone in zones:
             tested_zones.append(zone.name)
-            asyncio.create_task(zone.energise())
+            asyncio.create_task(zone.energise(test_duration))
+        await asyncio.sleep(test_duration - 0.5)
         safety_val = self.get_safety_mv()
 
         payload = {
