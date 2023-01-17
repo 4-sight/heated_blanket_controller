@@ -219,11 +219,12 @@ class Channel:
         self.feet.clear()
         self.body.clear()
 
-    def on_error(self):
-        self.turn_off()
-        self.__status__ = CHANNEL_STATUS_ERROR
-        self.feet.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
-        self.body.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
+    def on_error(self, payload):
+        if payload['channel'] == self.index:
+            self.turn_off()
+            self.__status__ = CHANNEL_STATUS_ERROR
+            self.feet.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
+            self.body.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
 
     # def get_safety_range(self) -> range:
     #     t = time.time_ns()
