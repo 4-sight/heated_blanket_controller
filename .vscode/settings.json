@@ -8,6 +8,7 @@
     "python.analysis.extraPaths": [
         ".vscode\\Pico-W-Stub\\stubs"
     ],
+    "picowgo.fastUpload": false,
     "picowgo.syncFolder": "",
     "picowgo.openOnStart": true,
     "picowgo.pyIgnore": [
@@ -18,9 +19,11 @@
         "project.pico-go",
         "env",
         "venv",
-        "client"
+        "client",
+        "package.json",
+        "package-lock.json"
     ],
-    "picowgo.syncFileTypes": "py,txt,log,json,xml,html,js,css,mpy,svg,png",
+    "picowgo.syncFileTypes": "py,txt,log,json,xml,html,js,css,mpy,svg,png,gz,js.gz",
     "cSpell.words": [
         "ntptime",
         "pimoroni",

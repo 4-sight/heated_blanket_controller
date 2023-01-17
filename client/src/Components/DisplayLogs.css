@@ -1,0 +1,27 @@
+.log-table {
+  width: 80vw;
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.channel-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.channel-row {
+  display: flex;
+  width: 100%;
+  justify-content: space-evenly;
+}
+
+.zone-output-off {
+  color: red;
+}
+
+.zone-output-on {
+  color: lightgreen;
+}

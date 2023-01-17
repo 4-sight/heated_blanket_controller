@@ -14,6 +14,9 @@ const Home = ({ ...props }) => {
         <a className="nav-link" href="/app/settings">
           settings
         </a>
+        <a className="nav-link" href="/app/logs">
+          logs
+        </a>
       </div>
     </>
   );

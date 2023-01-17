@@ -1,9 +1,9 @@
-from display import Display
+# from display import Display
 from clock import Clock
 from logger import Logger
 from connection import Connection
 from server import Server
-from inputs import Inputs
+# from inputs import Inputs
 import uasyncio as asyncio
 from events import Events, ACTIONS
 from control import Control
@@ -11,7 +11,8 @@ from control import Control
 
 class App:
     _events:  Events
-    _display: Display
+    # _display: Display
+    # _inputs: Inputs
     _clock: Clock
     _logger: Logger
     _connection: Connection
@@ -21,13 +22,13 @@ class App:
 
     def __init__(self) -> None:
         self._events = Events()
-        self._display = Display(self._events)
+        # self._display = Display(self._events)
         self._clock = Clock(self._events)
         self._logger = Logger(self._events)
-        self._inputs = Inputs(self._events)
+        # self._inputs = Inputs(self._events)
         self._connection = Connection(self._events)
-        self._server = Server(self._events)
         self._control = Control(self._events)
+        self._server = Server(self._events, self._control)
         self._screen = ""
 
     def set_screen(self, screen: str) -> None:
@@ -42,9 +43,9 @@ class App:
     async def start(self) -> None:
         asyncio.create_task(self._server.start())
         asyncio.create_task(self._connection.monitor_connection())
-        asyncio.create_task(self._inputs.listen())
+        # asyncio.create_task(self._inputs.listen())
         asyncio.create_task(self._control.test_channels())
-        asyncio.create_task(self._control.debug_channels())
+        # asyncio.create_task(self._control.debug_channels())
 
     async def run(self) -> None:
         self._events.subscribe(ACTIONS.BUTTON_PRESSED, self.handle_inputs)

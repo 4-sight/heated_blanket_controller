@@ -3,6 +3,7 @@ from heater import ZONE_STATUS_ERROR_SAFETY_HIGH, ZONE_STATUS_ERROR_SAFETY_LOW, 
 from machine import Pin, ADC
 import uasyncio as asyncio
 from uasyncio import Task
+import time
 
 CONVERSION_FACTOR = 3.3 / 65535
 MIN_RANGE = range(0, 60)
@@ -27,6 +28,7 @@ class Channel:
     _events: Events
     _safety_range: range
     __status__: int
+    _safety_logs: list[dict]
 
     def __init__(self, index: int, feet_pin: int, body_pin: int, safety_pin: int,  events: Events) -> None:
         self._events = events
@@ -39,6 +41,7 @@ class Channel:
         self._safety_range = MIN_RANGE
         self.__status__ = CHANNEL_STATUS_INITIAL
         self._monitoring = None
+        self._safety_logs = []
 
         events.subscribe(ACTIONS.CHANNEL_SAFETY_DETECTED,
                          self._test_heating_zones)
@@ -66,6 +69,10 @@ class Channel:
         return mv
 
     async def _detect_safety_output(self) -> None:
+        self.feet.clear()
+        self.body.clear()
+        await asyncio.sleep(0.5)
+
         init_safety_val = self.get_safety_mv()
         retry_interval = 1
         attempt = 0
@@ -118,7 +125,7 @@ class Channel:
                 zone_status = ZONE_STATUS_ERROR_SAFETY_HIGH
 
             for zone in zones:
-                zone.turn_off()
+                zone.clear()
                 zone.set_status(zone_status)
 
             self._events.publish(
@@ -137,9 +144,6 @@ class Channel:
             return
 
         self.__status__ = 1
-        self.feet.turn_off()
-        self.body.turn_off()
-        await asyncio.sleep(0.5)
         asyncio.create_task(self._detect_safety_output())
 
     def _test_heating_zones(self, payload) -> None:
@@ -165,20 +169,41 @@ class Channel:
         if payload['channel'] == self.index:
             asyncio.create_task(_test())
 
+    def _log_safety_data(self, data: dict) -> None:
+        self._safety_logs.append(data)
+
+    def take_safety_logs(self) -> list[dict]:
+        curr_logs = self._safety_logs
+        self._safety_logs = []
+        return curr_logs
+
     def monitor_safety_val(self) -> None:
         if self._monitoring == None:
 
             async def _monitor():
                 while True:
+
                     self.update_safety_range()
                     safety_val = self.get_safety_mv(1)
 
-                    if safety_val not in self._safety_range:
+                    safety_data = {
+                        't': time.ticks_ms(),
+                        'r': {
+                            'start': self._safety_range.start,
+                            'stop': self._safety_range.stop
+                        },
+                        'sv': safety_val,
+                        'f': 1 if self.feet.is_live else 0,
+                        'b': 1 if self.body.is_live else 0,
+                    }
+                    self._log_safety_data(safety_data)
 
-                        self._events.publish(ACTIONS.HEATING_CHANNEL_OUT_OF_RANGE_ERROR,
-                                             payload={'channel': self.index, 'safety_val': safety_val}, log_level=ACTIONS.LOG_ERROR)
+                    # if safety_val not in self._safety_range:
 
-                    await asyncio.sleep(0.01)
+                    #     self._events.publish(ACTIONS.HEATING_CHANNEL_OUT_OF_RANGE_ERROR,
+                    #                          payload={'channel': self.index, 'safety_val': safety_val}, log_level=ACTIONS.LOG_ERROR)
+
+                    await asyncio.sleep(0.05)
 
             self._monitoring = asyncio.create_task(_monitor())
 
@@ -191,14 +216,23 @@ class Channel:
         }
 
     def turn_off(self):
-        self.feet.turn_off()
-        self.body.turn_off()
+        self.feet.clear()
+        self.body.clear()
 
     def on_error(self):
         self.turn_off()
         self.__status__ = CHANNEL_STATUS_ERROR
         self.feet.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
         self.body.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
+
+    # def get_safety_range(self) -> range:
+    #     t = time.time_ns()
+    #     f = self.feet.is_live
+    #     ft = self.feet.get_output_timestamp()
+    #     b = self.body.is_live
+    #     bt = self.body.get_output_timestamp()
+
+        # TODO
 
     def update_safety_range(self):
         feet_live = self.feet.is_live

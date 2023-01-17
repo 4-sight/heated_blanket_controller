@@ -54,3 +54,9 @@ class Control:
                                  "'safety_1': {}\n'safety_2': {}".format(safety_val_1, safety_val_2))
 
             await asyncio.sleep(0.1)
+
+    def take_channel_logs(self) -> dict:
+        return {
+            'channel_1': self.channel_1.take_safety_logs(),
+            'channel_2': self.channel_2.take_safety_logs(),
+        }

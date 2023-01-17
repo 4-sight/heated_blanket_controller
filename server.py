@@ -1,4 +1,5 @@
 import json
+from control import Control
 from events import Events, ACTIONS
 import uasyncio as asyncio
 
@@ -6,8 +7,9 @@ import uasyncio as asyncio
 class Server:
     _events: Events
 
-    def __init__(self, events: Events) -> None:
+    def __init__(self, events: Events, control: Control) -> None:
         self._events = events
+        self._control = control
 
     async def start(self):
         self._events.publish(ACTIONS.LOG_DEBUG, "Setting up webserver...")
@@ -31,6 +33,12 @@ class Server:
             if route.startswith("/app"):
                 await serve_app(writer)
 
+            elif route.startswith("/drain_logs"):
+                logs = self._control.take_channel_logs()
+                response = json.dumps(logs)
+                writer.write(
+                    'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
+                writer.write(response)
             else:
                 await serve_public_asset(writer, route)
 
@@ -89,8 +97,10 @@ async def serve_public_asset(writer, path: str):
         else:
             print("unhandled file type")
             writer.write('HTTP/1.1 500 Bad Request\r\n')
-    except:
-        writer.write('HTTP/1.1 404 Bad Request\r\n')
+    except Exception as ex:
+        print("ERROR: Failed to serve asset", ex)
+        writer.write('HTTP/1.1 404 Bad Request\r\n\r\n')
+        writer.write("ERROR: Failed to serve asset \r\n{}\r\n".format(ex))
 
 # =============================================================
 
