@@ -9,7 +9,7 @@
         ".vscode\\Pico-W-Stub\\stubs"
     ],
     "picowgo.fastUpload": false,
-    "picowgo.syncFolder": "",
+    "picowgo.syncFolder": "/build",
     "picowgo.openOnStart": true,
     "picowgo.pyIgnore": [
         ".picowgo",

@@ -6,4 +6,4 @@ secrets.py
 node_modules/
 Pico-W-Stub
 
-dist/
+build/
