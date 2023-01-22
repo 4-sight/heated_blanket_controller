@@ -11,6 +11,7 @@ class Server:
 
     def __init__(self, events: Events, control: Control, logger: Logger) -> None:
         self._events = events
+        self._logger = logger
         self._control = control
 
     async def start(self):
