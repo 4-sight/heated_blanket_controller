@@ -14,8 +14,8 @@ const LoggingControls = () => {
       <input
         type="range"
         value={level}
-        min={1}
-        max={3}
+        min={0}
+        max={2}
         step={1}
         onChange={(e) => {
           onChange(parseInt(e.currentTarget.value));
