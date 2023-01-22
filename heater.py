@@ -54,7 +54,7 @@ class Heater:
                 ACTIONS.LOG_ERROR, "ZONE SET LEVEL IGNORED, invalid zone status")
             return
 
-        self._level = level
+        self._level = level % 10
 
         if self._running != None:
             self._running.cancel()
@@ -65,17 +65,16 @@ class Heater:
                 return
 
             while True:
-                level = self._level
                 self._events.publish(
                     ACTIONS.LOG_INFO, self.name + " on")
                 self._turn_on()
-                await asyncio.sleep(level)
+                await asyncio.sleep(self._level)
 
                 if level < 10:
                     self._events.publish(
                         ACTIONS.LOG_INFO, self.name + " off")
                     self._turn_off()
-                    await asyncio.sleep(10 - level)
+                    await asyncio.sleep(10 - self._level)
 
         self._running = asyncio.create_task(run())
 
