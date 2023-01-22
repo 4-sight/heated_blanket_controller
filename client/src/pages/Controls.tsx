@@ -1,4 +1,5 @@
 import warmzLogo from "../assets/warmz.svg";
+import ManualZoneControls from "../Components/ManualZoneControls";
 
 import PresetButton from "../Components/PresetButton";
 
@@ -11,6 +12,7 @@ const Controls = ({ ...props }) => {
         <img src={warmzLogo} class="logo" alt="Warmz logo" />
       </a>
       <h1>Controls</h1>
+      <ManualZoneControls />
       <p className="presets-title">Presets</p>
       <div className="presets">
         {[1, 2, 3, 4, 5, 6].map((i) => (

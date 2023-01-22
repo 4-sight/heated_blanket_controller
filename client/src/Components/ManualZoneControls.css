@@ -1,0 +1,17 @@
+.channels-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.zone-level-slider-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.slider-wrapper {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
