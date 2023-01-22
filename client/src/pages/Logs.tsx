@@ -6,6 +6,8 @@ import DisplayLogs from "../Components/DisplayLogs";
 import "./Logs.css";
 import { useCallback } from "preact/hooks";
 import CurveControls from "../Components/CurveControls";
+import LoggingControls from "../Components/LoggingControls";
+import ManualZoneControls from "../Components/ManualZoneControls";
 
 const Controls = ({ ...props }) => {
   const logs = usePollLogs();
@@ -29,6 +31,8 @@ const Controls = ({ ...props }) => {
         <img src={warmzLogo} class="logo" alt="Warmz logo" />
       </a>
       <h1>Logs</h1>
+      <LoggingControls />
+      <ManualZoneControls />
       <CurveControls />
       {logs && (
         <>
