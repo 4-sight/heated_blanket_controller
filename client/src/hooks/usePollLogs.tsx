@@ -11,16 +11,21 @@ export interface Log {
   b: number;
 }
 
+export type ChannelData = {
+  exceptions: Log[];
+  exception_count: number;
+  min_t: number;
+  max_t: number;
+  mean_t: number;
+};
+
 export type Logs = {
-  channel1: Log[];
-  channel2: Log[];
+  channel1: ChannelData;
+  channel2: ChannelData;
 };
 
 const usePollLogs = () => {
-  const [logs, setLogs] = useState<Logs>({
-    channel1: [],
-    channel2: [],
-  });
+  const [logs, setLogs] = useState<Logs | null>(null);
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -31,12 +36,30 @@ const usePollLogs = () => {
 
       try {
         let data = await res.json();
-        data = data as { channel_1: Log[]; channel_2: Log };
+        data = data as Logs;
 
-        setLogs((prevLogs) => ({
-          channel1: [...prevLogs.channel1, ...data.channel_1],
-          channel2: [...prevLogs.channel2, ...data.channel_2],
-        }));
+        setLogs((prevLogs) => {
+          if (prevLogs == null) {
+            return data;
+          }
+
+          return {
+            channel1: {
+              exceptions: [
+                ...prevLogs.channel1.exceptions,
+                ...data.channel_1.exceptions,
+              ],
+              ...data.channel_1,
+            },
+            channel2: {
+              exceptions: [
+                ...prevLogs.channel2.exceptions,
+                ...data.channel_2.exceptions,
+              ],
+              ...data.channel_2,
+            },
+          };
+        });
       } catch (err) {
         console.error(err);
       }

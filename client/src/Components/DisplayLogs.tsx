@@ -1,22 +1,24 @@
-import { Log, Logs } from "../hooks/usePollLogs";
+import { ChannelData, Log, Logs } from "../hooks/usePollLogs";
 import "./DisplayLogs.css";
 
 interface Props {
-  logs: Logs;
+  logs: Logs | null;
 }
 
 const DisplayLogs = ({ logs }: Props) => {
   return (
-    <div className="log-table">
-      <DisplayChannel index={1} channelLogs={logs.channel1} />
-      <DisplayChannel index={2} channelLogs={logs.channel2} />
-    </div>
+    logs && (
+      <div className="log-table">
+        <DisplayChannel index={1} channelLogs={logs.channel1} />
+        <DisplayChannel index={2} channelLogs={logs.channel2} />
+      </div>
+    )
   );
 };
 
 interface ChannelProps {
   index: number;
-  channelLogs: Log[];
+  channelLogs: ChannelData;
 }
 
 const DisplayChannel = ({ index, channelLogs }: ChannelProps) => {
@@ -24,7 +26,11 @@ const DisplayChannel = ({ index, channelLogs }: ChannelProps) => {
     <div className="channel-table">
       <h3 className="channel-heading">Channel {index}</h3>
       <div className="channel-rows">
-        {channelLogs.map((log) => (
+        <div>Min Threshold: {channelLogs.min_t}</div>
+        <div>Max Threshold: {channelLogs.max_t}</div>
+        <div>Mean Threshold: {channelLogs.mean_t}</div>
+        <div>Out of range count: {channelLogs.exception_count}</div>
+        {channelLogs.exceptions.map((log: Log) => (
           <div className="channel-row">
             <div className="timestamp">T: {log.t}</div>
             <div className="feet">

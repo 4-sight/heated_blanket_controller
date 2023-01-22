@@ -60,3 +60,9 @@ class Control:
             'channel_1': self.channel_1.take_safety_logs(),
             'channel_2': self.channel_2.take_safety_logs(),
         }
+
+    def get_curve_data(self, channel_index: int) -> dict:
+        if channel_index == 1:
+            return self.channel_1.get_curve_data()
+        else:
+            return self.channel_2.get_curve_data()

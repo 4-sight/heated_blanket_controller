@@ -1,0 +1,22 @@
+.curve-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 3rem;
+}
+
+.channel-curve-controls {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-control {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.slider-container {
+  display: flex;
+  justify-content: space-between;
+  width: 11rem;
+}

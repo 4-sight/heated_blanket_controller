@@ -30,11 +30,13 @@ class ACTIONS:
     CHANNEL_SAFETY_NOT_PRESENT: str = "channel_safety_not_present"
     CHANNEL_SAFETY_DETECTED: str = "channel_safety_detected"
 
-    HEATER_ENERGISED: str = "heater_energised"
+    HEATER_TESTING: str = "heater_testing"
     HEATING_ZONE_OUT_OF_RANGE_ERROR: str = "Error: heating zone out of range"
     HEATING_ZONE_IN_RANGE: str = "Heating zone in range"
     HEATING_CHANNEL_OUT_OF_RANGE_ERROR: str = "Error: heating channel out of range"
     HEATING_CHANNEL_TEST_PASSED: str = "heating channel test passed"
+
+    ADJUST_SAFETY_RANGE: str = "adjust safety range"
 
 
 class Events:

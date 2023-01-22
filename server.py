@@ -39,15 +39,34 @@ class Server:
                 writer.write(
                     'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
                 writer.write(response)
+            elif route.startswith("/curve_data/1"):
+                curve_data = self._control.get_curve_data(1)
+                response = json.dumps(curve_data)
+                writer.write(
+                    'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
+                writer.write(response)
+            elif route.startswith("/curve_data/2"):
+                curve_data = self._control.get_curve_data(2)
+                response = json.dumps(curve_data)
+                writer.write(
+                    'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
+                writer.write(response)
             else:
                 await serve_public_asset(writer, route)
 
         if method == "POST":
             if route == "/api/apply_preset/":
-                # print(req['body'])
                 body = json.loads(req['body'])
                 payload = int(body['preset'])
                 self._events.publish(ACTIONS.APPLY_PRESET, payload)
+
+                writer.write(
+                    'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
+
+            if route == "/api/adjust_safety_range/":
+                body = json.loads(req['body'])
+                payload = int(body['preset'])
+                self._events.publish(ACTIONS.ADJUST_SAFETY_RANGE, payload)
 
                 writer.write(
                     'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')

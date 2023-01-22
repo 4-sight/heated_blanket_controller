@@ -29,24 +29,41 @@ class Channel:
     _safety_range: range
     __status__: int
     _safety_logs: list[dict]
+    _out_of_range_count: int
+    _min_t: int
+    _max_t: int
+    _mean_t: int
+    _mean_count: int
+    _RANGE = range(-10, 80)
+    _FEET_MAX = 140
+    _BODY_MAX = 130
 
     def __init__(self, index: int, feet_pin: int, body_pin: int, safety_pin: int,  events: Events) -> None:
         self._events = events
         self.index = index
         self.feet = Heater("feet_{}".format(
-            index), Pin(feet_pin, Pin.OUT), events)
+            index), Pin(feet_pin, Pin.OUT), events, A=0.36, B=0.01, C=210)
         self.body = Heater("body_{}".format(
-            index), Pin(body_pin, Pin.OUT), events)
+            index), Pin(body_pin, Pin.OUT), events, A=0.36, B=0.01, C=210)
         self.safety = ADC(safety_pin)
         self._safety_range = MIN_RANGE
         self.__status__ = CHANNEL_STATUS_INITIAL
         self._monitoring = None
         self._safety_logs = []
+        self._out_of_range_count = 0
+        self._min_t = 10000
+        self._max_t = 0
+        self._mean_t = 0
+        self._mean_count = 0
+        self._RANGE = range(-10, 80)
+        self._FEET_MAX = 140
+        self._BODY_MAX = 130
 
         events.subscribe(ACTIONS.CHANNEL_SAFETY_DETECTED,
                          self._test_heating_zones)
         events.subscribe(ACTIONS.HEATING_CHANNEL_OUT_OF_RANGE_ERROR,
                          self.on_error)
+        events.subscribe(ACTIONS.ADJUST_SAFETY_RANGE, self.adjust_safety_range)
 
     def set_levels(self, feet_level: int, body_level: int) -> None:
         if self.__status__ >= CHANNEL_STATUS_OK:
@@ -108,7 +125,7 @@ class Channel:
         test_duration = 0.2
         for zone in zones:
             tested_zones.append(zone.name)
-            asyncio.create_task(zone.energise(test_duration))
+            asyncio.create_task(zone.test(test_duration))
         await asyncio.sleep(test_duration - 0.1)
         safety_val = self.get_safety_mv()
 
@@ -172,40 +189,102 @@ class Channel:
     def _log_safety_data(self, data: dict) -> None:
         self._safety_logs.append(data)
 
-    def take_safety_logs(self) -> list[dict]:
+    def take_safety_logs(self) -> dict:
         curr_logs = self._safety_logs
         self._safety_logs = []
-        return curr_logs
+        return {
+            'exceptions': curr_logs,
+            'exception_count': self._out_of_range_count,
+            'min_t': self._min_t,
+            'max_t': self._max_t,
+            'mean_t': self._mean_t,
+        }
+
+    def get_curve_data(self) -> dict:
+        return {
+            'upper': self._RANGE.start,
+            'lower': self._RANGE.stop,
+            'feet_max': self._FEET_MAX,
+            'body_max': self._BODY_MAX,
+            'feet_curve': self.feet.get_curve_settings(),
+            'body_curve': self.body.get_curve_settings()
+        }
+
+    async def _monitor(self):
+
+        while True:
+
+            t = time.ticks_ms()
+            fq = self.feet.update_charge(t)
+            bq = self.body.update_charge(t)
+            safety_val = self.get_safety_mv(1)
+
+            v = int(fq * self._FEET_MAX + bq * self._BODY_MAX)
+            predicted_range = range(
+                self._RANGE.start + v, self._RANGE.stop + v)
+
+            # if safety_val not in self._safety_range:
+
+            #     self._events.publish(ACTIONS.HEATING_CHANNEL_OUT_OF_RANGE_ERROR,
+            #                          payload={'channel': self.index, 'safety_val': safety_val}, log_level=ACTIONS.LOG_ERROR)
+
+            threshold = min(safety_val - predicted_range.start,
+                            predicted_range.stop - safety_val)
+            self._min_t = min(self._min_t, threshold)
+            self._max_t = max(self._max_t, threshold)
+            self._mean_count += 1
+            self._mean_t += int((threshold - self._mean_t) / self._mean_count)
+
+            if safety_val not in predicted_range:
+                self._out_of_range_count += 1
+
+            safety_data = {
+                't': t,
+                'r': {
+                    'start': predicted_range.start,
+                    'stop': predicted_range.stop
+                },
+                'sv': safety_val,
+                'f': 1 if self.feet.is_live else 0,
+                'b': 1 if self.body.is_live else 0,
+            }
+            self._log_safety_data(safety_data)
+
+            await asyncio.sleep(0.05)
 
     def monitor_safety_val(self) -> None:
         if self._monitoring == None:
+            self._monitoring = asyncio.create_task(self._monitor())
 
-            async def _monitor():
-                while True:
+    def restart_monitoring(self) -> None:
+        if self._monitoring:
+            self._monitoring.cancel()
+            self._monitoring = None
+            self._safety_logs = []
+            self._out_of_range_count = 0
+            self._min_t = 10000
+            self._max_t = 0
+            self._mean_t = 0
+            self._mean_count = 0
+            self.monitor_safety_val()
 
-                    self.update_safety_range()
-                    safety_val = self.get_safety_mv(1)
+    def adjust_safety_range(self, vals: dict) -> None:
+        if vals['channel'] != self.index:
+            return
 
-                    safety_data = {
-                        't': time.ticks_ms(),
-                        'r': {
-                            'start': self._safety_range.start,
-                            'stop': self._safety_range.stop
-                        },
-                        'sv': safety_val,
-                        'f': 1 if self.feet.is_live else 0,
-                        'b': 1 if self.body.is_live else 0,
-                    }
-                    self._log_safety_data(safety_data)
+        if vals['lower']:
+            self._RANGE = range(vals['lower'], self._RANGE.stop)
+        if vals['upper']:
+            self._RANGE = range(self._RANGE.start, vals['upper'])
+        if vals['feet_max']:
+            self._FEET_MAX = vals['feet_max']
+        if vals['body_max']:
+            self._BODY_MAX = vals['body_max']
 
-                    # if safety_val not in self._safety_range:
-
-                    #     self._events.publish(ACTIONS.HEATING_CHANNEL_OUT_OF_RANGE_ERROR,
-                    #                          payload={'channel': self.index, 'safety_val': safety_val}, log_level=ACTIONS.LOG_ERROR)
-
-                    await asyncio.sleep(0.05)
-
-            self._monitoring = asyncio.create_task(_monitor())
+        if vals['feet_curve']:
+            self.feet.adjust_charge_curve(vals['feet_curve'])
+        if vals['body_curve']:
+            self.body.adjust_charge_curve(vals['body_curve'])
 
     def get_status(self):
         return {
@@ -225,25 +304,3 @@ class Channel:
             self.__status__ = CHANNEL_STATUS_ERROR
             self.feet.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
             self.body.set_status(ZONE_STATUS_ERROR_CHANNEL_ERROR)
-
-    # def get_safety_range(self) -> range:
-    #     t = time.time_ns()
-    #     f = self.feet.is_live
-    #     ft = self.feet.get_output_timestamp()
-    #     b = self.body.is_live
-    #     bt = self.body.get_output_timestamp()
-
-        # TODO
-
-    def update_safety_range(self):
-        feet_live = self.feet.is_live
-        body_live = self.body.is_live
-
-        if feet_live & body_live:
-            self._safety_range = DUAL_ZONE_RANGE
-        elif feet_live:
-            self._safety_range = FEET_ONLY_RANGE
-        elif body_live:
-            self._safety_range = BODY_ONLY_RANGE
-        else:
-            self._safety_range = MIN_RANGE
