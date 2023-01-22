@@ -27,7 +27,7 @@ class Heater:
     _state_change_timestamp: int
     __status__: int
 
-    def __init__(self, name: str, output: Pin, events: Events, A: float, B: float, C: float) -> None:
+    def __init__(self, name: str, output: Pin, events: Events, A: float, B: float, C: int) -> None:
         self._events = events
         self._level = 0
         self.name = name
@@ -44,6 +44,9 @@ class Heater:
 
     def get_status(self) -> int:
         return self.__status__
+
+    def get_level(self) -> int:
+        return self._level
 
     def set_level(self, level: int) -> None:
         if self.__status__ < ZONE_STATUS_OK:
