@@ -38,6 +38,8 @@ class Heater:
         self._A = A
         self._B = B
         self._C = C
+        self._charge = 0
+        self._res_charge = 0
 
     def set_status(self, statusCode) -> None:
         self.__status__ = statusCode
