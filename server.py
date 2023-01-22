@@ -63,7 +63,15 @@ class Server:
                 writer.write(
                     'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
 
-            if route == "/api/adjust_safety_range/":
+            elif route == "/api/set_heater_levels/":
+                body = json.loads(req['body'])
+                payload = (body['heater_levels'])
+                self._events.publish(ACTIONS.APPLY_PRESET, payload)
+
+                writer.write(
+                    'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
+
+            elif route == "/api/adjust_safety_range/":
                 body = json.loads(req['body'])
                 payload = int(body['preset'])
                 self._events.publish(ACTIONS.ADJUST_SAFETY_RANGE, payload)

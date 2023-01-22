@@ -19,6 +19,7 @@ class ACTIONS:
     SET_ONBOARD_LED: str = "set_onboard_led"
     SET_HEATER: str = "set_heater"
     APPLY_PRESET: str = "apply_preset"
+    SET_LEVELS: str = "set_channel_levels"
 
     BUTTON_PRESSED: str = "button_pressed"
     SAFETY_OUTPUT_READ: str = "safety_output_read"

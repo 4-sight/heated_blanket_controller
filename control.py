@@ -14,32 +14,39 @@ class Control:
         self.channel_2 = Channel(2, 3, 4, 27, events)
 
         self._events.subscribe(ACTIONS.APPLY_PRESET, self._handle_presets)
+        self._events.subscribe(ACTIONS.SET_LEVELS, self._set_levels)
 
     def _handle_presets(self, preset: int) -> None:
         if preset == 1:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 1")
-            self.channel_1.set_levels(9, 5)
-            self.channel_2.set_levels(0, 0)
+            self.channel_1.set_levels({'f': 9, 'b': 5})
+            self.channel_2.set_levels({'f': 0, 'b': 0})
         elif preset == 2:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 2")
-            self.channel_1.set_levels(9, 0)
-            self.channel_2.set_levels(9, 0)
+            self.channel_1.set_levels({'f': 9, 'b': 0})
+            self.channel_2.set_levels({'f': 9, 'b': 0})
         elif preset == 3:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 3")
-            self.channel_1.set_levels(9, 9)
-            self.channel_2.set_levels(9, 9)
+            self.channel_1.set_levels({'f': 9, 'b': 9})
+            self.channel_2.set_levels({'f': 9, 'b': 9})
         elif preset == 4:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 4")
-            self.channel_1.set_levels(5, 5)
-            self.channel_2.set_levels(5, 5)
+            self.channel_1.set_levels({'f': 5, 'b': 5})
+            self.channel_2.set_levels({'f': 5, 'b': 5})
         elif preset == 5:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 5")
-            self.channel_1.set_levels(1, 1)
-            self.channel_2.set_levels(1, 1)
+            self.channel_1.set_levels({'f': 1, 'b': 1})
+            self.channel_2.set_levels({'f': 1, 'b': 1})
         elif preset == 6:
             self._events.publish(ACTIONS.LOG_VERBOSE, "activate preset 6")
-            self.channel_1.set_levels(9, 5)
-            self.channel_2.set_levels(9, 5)
+            self.channel_1.set_levels({'f': 9, 'b': 5})
+            self.channel_2.set_levels({'f': 9, 'b': 5})
+
+    def _set_levels(self, levels: dict) -> None:
+        if 'c1' in levels:
+            self.channel_1.set_levels(levels['c1'])
+        if 'c2' in levels:
+            self.channel_2.set_levels(levels['c2'])
 
     async def test_channels(self) -> None:
         asyncio.create_task(self.channel_1.start_test())

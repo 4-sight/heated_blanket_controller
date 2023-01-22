@@ -65,15 +65,27 @@ class Channel:
                          self.on_error)
         events.subscribe(ACTIONS.ADJUST_SAFETY_RANGE, self.adjust_safety_range)
 
-    def set_levels(self, feet_level: int, body_level: int) -> None:
-        if self.__status__ >= CHANNEL_STATUS_OK:
+    def set_levels(self, levels: dict) -> None:
 
-            if feet_level + body_level == 0:
+        if self.__status__ < CHANNEL_STATUS_OK:
+            return
+
+        f = levels['f'] if 'f' in levels else self.feet.get_level()
+        b = levels['b'] if 'b' in levels else self.body.get_level()
+
+        try:
+            if f + b == 0:
                 self.turn_off()
-            else:
-                self.feet.set_level(feet_level)
-                self.body.set_level(body_level)
-                self.monitor_safety_val()
+                return
+
+            if 'f' in levels:
+                self.feet.set_level(f)
+            if 'b' in levels:
+                self.body.set_level(b)
+            self.monitor_safety_val()
+        except ValueError:
+            self._events.publish(
+                ACTIONS.LOG_ERROR, "Attempt to set invalid heating level f:{} b:{}".format(f, b))
 
     def get_safety_mv(self, sample_size=5) -> int:
         avg_volts = 0
