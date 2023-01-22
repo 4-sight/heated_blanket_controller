@@ -68,7 +68,7 @@ const useCurveData = (
 
         fetch("/api/adjust_safety_range/", {
           method: "POST",
-          body: JSON.stringify(_data),
+          body: JSON.stringify({ safety_range_settings: _data }),
         });
 
         return _data;

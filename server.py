@@ -65,7 +65,7 @@ class Server:
 
             elif route == "/api/set_heater_levels/":
                 body = json.loads(req['body'])
-                payload = (body['heater_levels'])
+                payload = body['heater_levels']
                 self._events.publish(ACTIONS.APPLY_PRESET, payload)
 
                 writer.write(
@@ -73,7 +73,7 @@ class Server:
 
             elif route == "/api/adjust_safety_range/":
                 body = json.loads(req['body'])
-                payload = int(body['preset'])
+                payload = body['safety_range_settings']
                 self._events.publish(ACTIONS.ADJUST_SAFETY_RANGE, payload)
 
                 writer.write(
