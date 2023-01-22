@@ -306,6 +306,12 @@ class Channel:
             'body_status': self.body.get_status()
         }
 
+    def get_zone_levels(self) -> dict:
+        return {
+            'f': self.feet.get_level(),
+            'b': self.body.get_level()
+        }
+
     def turn_off(self):
         self.feet.clear()
         self.body.clear()

@@ -73,3 +73,9 @@ class Control:
             return self.channel_1.get_curve_data()
         else:
             return self.channel_2.get_curve_data()
+
+    def get_heater_levels(self) -> dict:
+        return {
+            'c1': self.channel_1.get_zone_levels(),
+            'c2': self.channel_2.get_zone_levels()
+        }

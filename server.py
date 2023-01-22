@@ -51,6 +51,12 @@ class Server:
                 writer.write(
                     'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
                 writer.write(response)
+            elif route.startswith("/heater_levels"):
+                heater_levels = self._control.get_heater_levels()
+                response = json.dumps(heater_levels)
+                writer.write(
+                    'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
+                writer.write(response)
             else:
                 await serve_public_asset(writer, route)
 
