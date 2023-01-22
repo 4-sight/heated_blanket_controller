@@ -64,6 +64,7 @@ class Channel:
         events.subscribe(ACTIONS.HEATING_CHANNEL_OUT_OF_RANGE_ERROR,
                          self.on_error)
         events.subscribe(ACTIONS.ADJUST_SAFETY_RANGE, self.adjust_safety_range)
+        events.subscribe(ACTIONS.SET_LEVELS, self.set_levels)
 
     def set_levels(self, levels: dict) -> None:
 

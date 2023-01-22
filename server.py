@@ -81,7 +81,7 @@ class Server:
             elif route == "/api/set_heater_levels/":
                 body = json.loads(req['body'])
                 payload = body['heater_levels']
-                self._events.publish(ACTIONS.APPLY_PRESET, payload)
+                self._events.publish(ACTIONS.SET_LEVELS, payload)
 
                 writer.write(
                     'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
