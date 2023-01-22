@@ -15,22 +15,22 @@ export type UpdateHeaterLevels = {
   c2?: Partial<ZoneLevels>;
 };
 
-const dummyData: HeaterLevels = {
-  c1: {
-    f: 0,
-    b: 3,
-  },
-  c2: {
-    f: 6,
-    b: 9,
-  },
-};
+// const dummyData: HeaterLevels = {
+//   c1: {
+//     f: 0,
+//     b: 3,
+//   },
+//   c2: {
+//     f: 6,
+//     b: 9,
+//   },
+// };
 
 const useHeaterLevels = (): [
   HeaterLevels | null,
   (val: UpdateHeaterLevels) => void
 ] => {
-  const [levels, setLevels] = useState<HeaterLevels | null>(dummyData);
+  const [levels, setLevels] = useState<HeaterLevels | null>(null);
 
   useEffect(() => {
     const fetchLevels = async () => {
