@@ -27,7 +27,7 @@ class App:
         self._logger = Logger(self._events)
         # self._inputs = Inputs(self._events)
         self._connection = Connection(self._events)
-        self._control = Control(self._events)
+        self._control = Control(self._events, self._logger)
         self._server = Server(self._events, self._control)
         self._screen = ""
 

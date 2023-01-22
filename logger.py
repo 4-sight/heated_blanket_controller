@@ -27,7 +27,14 @@ class Logger:
         self._events.subscribe(ACTIONS.LOGGING_MUTE, self._mute_logging)
 
     def _set_level(self, level: int) -> None:
-        self._level = level
+        try:
+            self._level = int(level) % 3
+        except ValueError:
+            self._events.publish(
+                ACTIONS.LOG_ERROR, "Unable to set logging level, invalid level: {}".format(level))
+
+    def get_level(self) -> int:
+        return self._level
 
     def _inc_level(self, _payload) -> None:
         new_level = (self._level + 1) % 3
