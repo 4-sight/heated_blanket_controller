@@ -1,13 +1,15 @@
 import json
 from control import Control
+from logger import Logger
 from events import Events, ACTIONS
 import uasyncio as asyncio
 
 
 class Server:
     _events: Events
+    _logger: Logger
 
-    def __init__(self, events: Events, control: Control) -> None:
+    def __init__(self, events: Events, control: Control, logger: Logger) -> None:
         self._events = events
         self._control = control
 
@@ -57,6 +59,12 @@ class Server:
                 writer.write(
                     'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
                 writer.write(response)
+            elif route.startswith("/logging_level"):
+                logging_level = self._logger.get_level()
+                response = json.dumps({'level': logging_level})
+                writer.write(
+                    'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
+                writer.write(response)
             else:
                 await serve_public_asset(writer, route)
 
@@ -81,6 +89,14 @@ class Server:
                 body = json.loads(req['body'])
                 payload = body['safety_range_settings']
                 self._events.publish(ACTIONS.ADJUST_SAFETY_RANGE, payload)
+
+                writer.write(
+                    'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
+
+            elif route == "/api/set_logging_level/":
+                body = json.loads(req['body'])
+                level = body['log_level']
+                self._logger._set_level(level)
 
                 writer.write(
                     'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')

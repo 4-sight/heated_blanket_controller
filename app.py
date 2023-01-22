@@ -28,7 +28,7 @@ class App:
         # self._inputs = Inputs(self._events)
         self._connection = Connection(self._events)
         self._control = Control(self._events)
-        self._server = Server(self._events, self._control)
+        self._server = Server(self._events, self._control, self._logger)
         self._screen = ""
 
     def set_screen(self, screen: str) -> None:
