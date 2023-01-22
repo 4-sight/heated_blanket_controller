@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "preact/hooks";
 
 const useLoggingLevel = (): [number | null, (val: number) => void] => {
-  const [level, setLevel] = useState<number | null>(1);
+  const [level, setLevel] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchLevel = async () => {

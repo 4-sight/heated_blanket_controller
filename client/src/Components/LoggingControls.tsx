@@ -10,7 +10,7 @@ const LoggingControls = () => {
   return (
     <div className="logging-level-controls">
       <p className="title">Logging</p>
-      <p className="level">{LOGGING_LEVELS[level - 1]}</p>
+      <p className="level">{LOGGING_LEVELS[level]}</p>
       <input
         type="range"
         value={level}
