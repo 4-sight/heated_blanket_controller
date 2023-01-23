@@ -236,11 +236,6 @@ class Channel:
             predicted_range = range(
                 self._RANGE.start + v, self._RANGE.stop + v)
 
-            # if safety_val not in self._safety_range:
-
-            #     self._events.publish(ACTIONS.HEATING_CHANNEL_OUT_OF_RANGE_ERROR,
-            #                          payload={'channel': self.index, 'safety_val': safety_val}, log_level=ACTIONS.LOG_ERROR)
-
             threshold = min(safety_val - predicted_range.start,
                             predicted_range.stop - safety_val)
             self._min_t = min(self._min_t, threshold)
@@ -251,14 +246,8 @@ class Channel:
             if safety_val not in predicted_range:
                 self._out_of_range_count += 1
 
-                safety_data = {
-                    'start': predicted_range.start,
-                    'stop': predicted_range.stop,
-                    'sv': safety_val,
-                    'f': 1 if self.feet.is_live else 0,
-                    'b': 1 if self.body.is_live else 0,
-                }
-                print(safety_data)
+            print("SV: {}\tRANGE: {}-{}\tFQ: {}\tBQ: {}\tF:{}B:{}".format(safety_val,
+                  predicted_range.start, predicted_range.stop, fq, bq, self.feet.is_live, self.body.is_live))
             # self._log_safety_data(safety_data)
 
             await asyncio.sleep(0.2)
@@ -280,6 +269,8 @@ class Channel:
             self.monitor_safety_val()
 
     def adjust_safety_range(self, vals: dict) -> None:
+        self.restart_monitoring()
+
         if vals['channel'] != self.index:
             return
 
