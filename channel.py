@@ -251,19 +251,17 @@ class Channel:
             if safety_val not in predicted_range:
                 self._out_of_range_count += 1
 
-            # safety_data = {
-            #     't': t,
-            #     'r': {
-            #         'start': predicted_range.start,
-            #         'stop': predicted_range.stop
-            #     },
-            #     'sv': safety_val,
-            #     'f': 1 if self.feet.is_live else 0,
-            #     'b': 1 if self.body.is_live else 0,
-            # }
+                safety_data = {
+                    'start': predicted_range.start,
+                    'stop': predicted_range.stop,
+                    'sv': safety_val,
+                    'f': 1 if self.feet.is_live else 0,
+                    'b': 1 if self.body.is_live else 0,
+                }
+                print(safety_data)
             # self._log_safety_data(safety_data)
 
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.2)
 
     def monitor_safety_val(self) -> None:
         if self._monitoring == None:
