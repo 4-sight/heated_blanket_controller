@@ -9,8 +9,8 @@ const DisplayLogs = ({ logs }: Props) => {
   return (
     logs && (
       <div className="log-table">
-        <DisplayChannel index={1} channelLogs={logs.channel1} />
-        <DisplayChannel index={2} channelLogs={logs.channel2} />
+        <DisplayChannel index={1} channelLogs={logs.channel_1} />
+        <DisplayChannel index={2} channelLogs={logs.channel_2} />
       </div>
     )
   );

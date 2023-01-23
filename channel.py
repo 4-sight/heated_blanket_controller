@@ -215,8 +215,8 @@ class Channel:
 
     def get_curve_data(self) -> dict:
         return {
-            'upper': self._RANGE.start,
-            'lower': self._RANGE.stop,
+            'lower': self._RANGE.start,
+            'upper': self._RANGE.stop,
             'feet_max': self._FEET_MAX,
             'body_max': self._BODY_MAX,
             'feet_curve': self.feet.get_curve_settings(),
@@ -251,17 +251,17 @@ class Channel:
             if safety_val not in predicted_range:
                 self._out_of_range_count += 1
 
-            safety_data = {
-                't': t,
-                'r': {
-                    'start': predicted_range.start,
-                    'stop': predicted_range.stop
-                },
-                'sv': safety_val,
-                'f': 1 if self.feet.is_live else 0,
-                'b': 1 if self.body.is_live else 0,
-            }
-            self._log_safety_data(safety_data)
+            # safety_data = {
+            #     't': t,
+            #     'r': {
+            #         'start': predicted_range.start,
+            #         'stop': predicted_range.stop
+            #     },
+            #     'sv': safety_val,
+            #     'f': 1 if self.feet.is_live else 0,
+            #     'b': 1 if self.body.is_live else 0,
+            # }
+            # self._log_safety_data(safety_data)
 
             await asyncio.sleep(0.05)
 

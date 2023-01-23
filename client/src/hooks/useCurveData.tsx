@@ -61,14 +61,14 @@ const useCurveData = (
       setData((prevData) => {
         if (prevData == null) return prevData;
 
-        let _data = {
+        let _data: CurveData = {
           ...prevData,
           ...val,
         };
 
         fetch("/api/adjust_safety_range/", {
           method: "POST",
-          body: JSON.stringify({ safety_range_settings: _data }),
+          body: JSON.stringify({ safety_range_settings: {..._data, channel: channelIndex} }),
         });
 
         return _data;

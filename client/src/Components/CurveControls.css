@@ -15,7 +15,7 @@
   gap: 1rem;
 }
 
-.slider-container {
+.input-container {
   display: flex;
   justify-content: space-between;
   width: 11rem;

@@ -19,136 +19,136 @@ const ChannelCurveControls = ({ index }: { index: number }) => {
 
   return (
     <div className="channel-curve-controls">
-      <SettingSlider
+      <SettingInput
         label="upper"
         value={data.upper}
         min={0}
         max={150}
         step={1}
-        onChange={(v: number) => {
-          onChange({ upper: v });
+        onChange={(v) => {
+          onChange({ upper: parseInt(v) });
         }}
       />
-      <SettingSlider
+      <SettingInput
         label="lower"
         value={data.lower}
         min={-20}
         max={40}
         step={1}
-        onChange={(v: number) => {
-          onChange({ lower: v });
+        onChange={(v) => {
+          onChange({ lower: parseInt(v) });
         }}
       />
       <div className="zones">
         <div className="zone-settings">
-          <SettingSlider
+          <SettingInput
             label="feet_max"
             value={data.feet_max}
             min={0}
             max={200}
             step={1}
-            onChange={(v: number) => {
-              onChange({ feet_max: v });
+            onChange={(v) => {
+              onChange({ feet_max: parseInt(v) });
             }}
           />
-          <SettingSlider
+          <SettingInput
             label="feet A"
             value={data.feet_curve.A}
             min={0}
             max={1}
             step={0.01}
-            onChange={(v: number) => {
+            onChange={(v) => {
               onChange({
                 feet_curve: {
                   ...data.feet_curve,
-                  A: v,
+                  A: parseFloat(v),
                 },
               });
             }}
           />
-          <SettingSlider
+          <SettingInput
             label="feet B"
             value={data.feet_curve.B}
             min={0}
             max={0.2}
             step={0.001}
-            onChange={(v: number) => {
+            onChange={(v) => {
               onChange({
                 feet_curve: {
                   ...data.feet_curve,
-                  B: v,
+                  B: parseFloat(v),
                 },
               });
             }}
           />
-          <SettingSlider
+          <SettingInput
             label="feet C"
             value={data.feet_curve.C}
             min={0}
             max={300}
             step={1}
-            onChange={(v: number) => {
+            onChange={(v) => {
               onChange({
                 feet_curve: {
                   ...data.feet_curve,
-                  C: v,
+                  C: parseInt(v),
                 },
               });
             }}
           />
         </div>
         <div className="zone-settings">
-          <SettingSlider
+          <SettingInput
             label="body_max"
             value={data.body_max}
             min={0}
             max={200}
             step={1}
-            onChange={(v: number) => {
-              onChange({ body_max: v });
+            onChange={(v) => {
+              onChange({ body_max: parseInt(v) });
             }}
           />
-          <SettingSlider
+          <SettingInput
             label="body A"
             value={data.body_curve.A}
             min={0}
             max={1}
             step={0.01}
-            onChange={(v: number) => {
+            onChange={(v) => {
               onChange({
                 body_curve: {
                   ...data.body_curve,
-                  A: v,
+                  A: parseFloat(v),
                 },
               });
             }}
           />
-          <SettingSlider
+          <SettingInput
             label="body B"
             value={data.body_curve.B}
             min={0}
             max={0.2}
             step={0.001}
-            onChange={(v: number) => {
+            onChange={(v) => {
               onChange({
                 body_curve: {
                   ...data.body_curve,
-                  B: v,
+                  B: parseFloat(v),
                 },
               });
             }}
           />
-          <SettingSlider
+          <SettingInput
             label="body C"
             value={data.body_curve.C}
             min={0}
             max={300}
             step={1}
-            onChange={(v: number) => {
+            onChange={(v) => {
               onChange({
                 body_curve: {
                   ...data.body_curve,
-                  C: v,
+                  C: parseInt(v),
                 },
               });
             }}
@@ -159,7 +159,7 @@ const ChannelCurveControls = ({ index }: { index: number }) => {
   );
 };
 
-const SettingSlider = ({
+const SettingInput = ({
   label,
   value,
   min,
@@ -172,22 +172,22 @@ const SettingSlider = ({
   min: number;
   max: number;
   step: number;
-  onChange: (val: number) => void;
+  onChange: (val: string) => void;
 }) => {
   return (
     <div className="setting-control">
       <label htmlFor={label}>{label}</label>
-      <div className="slider-container">
+      <div className="input-container">
         <input
-          className="settings-slider"
+          className="settings-sinput"
           name={label}
-          type="range"
+          type="number"
           value={value}
           min={min}
           max={max}
           step={step}
           onChange={(e) => {
-            onChange(parseInt(e.currentTarget.value));
+            onChange(e.currentTarget.value);
           }}
         ></input>
         {value}

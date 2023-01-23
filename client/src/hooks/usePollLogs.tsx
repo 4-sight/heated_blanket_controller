@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 
 export interface Log {
   t: number;
@@ -20,16 +20,15 @@ export type ChannelData = {
 };
 
 export type Logs = {
-  channel1: ChannelData;
-  channel2: ChannelData;
+  channel_1: ChannelData;
+  channel_2: ChannelData;
 };
 
 const usePollLogs = () => {
   const [logs, setLogs] = useState<Logs | null>(null);
 
-  useEffect(() => {
-    const fetchLogs = async () => {
-      const res = await fetch("/drain_logs/");
+  const fetchLogs = useCallback(async() => {
+    const res = await fetch("/drain_logs/");
       if (!res.ok) {
         return logs;
       }
@@ -43,35 +42,38 @@ const usePollLogs = () => {
             return data;
           }
 
-          return {
-            channel1: {
+          let newLogs: Logs = {
+            channel_1: {
               exceptions: [
-                ...prevLogs.channel1.exceptions,
+                ...prevLogs.channel_1.exceptions,
                 ...data.channel_1.exceptions,
               ],
               ...data.channel_1,
             },
-            channel2: {
+            channel_2: {
               exceptions: [
-                ...prevLogs.channel2.exceptions,
+                ...prevLogs.channel_2.exceptions,
                 ...data.channel_2.exceptions,
               ],
               ...data.channel_2,
             },
           };
+
+          return newLogs
         });
       } catch (err) {
         console.error(err);
       }
-    };
+  }, [setLogs])
 
+  useEffect(() => {
     fetchLogs();
-    const interval = setInterval(fetchLogs, 5000);
+    const interval = setInterval(fetchLogs, 500);
 
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [fetchLogs]);
 
   return logs;
 };
