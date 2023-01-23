@@ -112,11 +112,14 @@ class Server:
 
 async def serve_app(writer):
     path = "./dist/index.html"
-    with open(path, 'r') as file:
-        html = file.read()
+    try:
+        with open(path, 'r') as file:
+            html = file.read()
 
-    writer.write('HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
-    writer.write(html)
+        writer.write('HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
+        writer.write(html)
+    except MemoryError:
+        writer.write('HTTP/1.1 503 Out of Resources\r\n\r\n')
 
 
 # =============================================================
@@ -146,10 +149,12 @@ async def serve_public_asset(writer, path: str):
             writer.write(response)
         else:
             print("unhandled file type")
-            writer.write('HTTP/1.1 500 Bad Request\r\n')
+            writer.write('HTTP/1.1 415 Unsupported Media Type\r\n')
+    except MemoryError:
+        writer.write('HTTP/1.1 503 Out of Resources\r\n\r\n')
     except Exception as ex:
         print("ERROR: Failed to serve asset", ex)
-        writer.write('HTTP/1.1 404 Bad Request\r\n\r\n')
+        writer.write('HTTP/1.1 500 Server Error\r\n\r\n')
         writer.write("ERROR: Failed to serve asset \r\n{}\r\n".format(ex))
 
 # =============================================================
