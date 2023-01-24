@@ -257,8 +257,8 @@ class Channel:
             if safety_val not in predicted_range:
                 self._out_of_range_count += 1
 
-            print("SV: {}\tRANGE: {}-{}\tFQ: {}\tBQ: {}\tF:{}B:{}".format(safety_val,
-                  predicted_range.start, predicted_range.stop, fq, bq, self.feet.is_live, self.body.is_live))
+            # print("SV: {}\tRANGE: {}-{}\tFQ: {}\tBQ: {}\tF:{}B:{}".format(safety_val,
+            #       predicted_range.start, predicted_range.stop, fq, bq, self.feet.is_live, self.body.is_live))
 
             self._log_safety_data({
                 't': t,
