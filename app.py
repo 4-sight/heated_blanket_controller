@@ -7,6 +7,7 @@ from server import Server
 import uasyncio as asyncio
 from events import Events, ACTIONS
 from control import Control
+import gc
 
 
 class App:
@@ -52,6 +53,7 @@ class App:
     async def run(self) -> None:
         # self._events.subscribe(ACTIONS.BUTTON_PRESSED, self.handle_inputs)
         while True:
+            gc.collect()
             await asyncio.sleep(0.1)
 
     # def handle_inputs(self, buttons) -> None:
