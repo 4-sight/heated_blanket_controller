@@ -4,6 +4,7 @@ from machine import Pin, ADC
 import uasyncio as asyncio
 from uasyncio import Task
 import time
+import gc
 
 CONVERSION_FACTOR = 3.3 / 65535
 MIN_RANGE = range(0, 60)
@@ -202,15 +203,25 @@ class Channel:
     def _log_safety_data(self, data: dict) -> None:
         self._safety_logs.append(data)
 
-    def take_safety_logs(self) -> dict:
-        curr_logs = self._safety_logs
+    def _clear_logs(self) -> None:
+        for log in self._safety_logs:
+            del log
+
+        gc.collect()
+
         self._safety_logs = []
+
+    def take_safety_logs(self) -> dict:
+        safety_logs = self._safety_logs
+        self._clear_logs()
+
         return {
-            'exceptions': curr_logs,
+            'logs': safety_logs,
             'exception_count': self._out_of_range_count,
             'min_t': self._min_t,
             'max_t': self._max_t,
             'mean_t': self._mean_t,
+            'count': self._mean_count
         }
 
     def get_curve_data(self) -> dict:
@@ -248,9 +259,29 @@ class Channel:
 
             print("SV: {}\tRANGE: {}-{}\tFQ: {}\tBQ: {}\tF:{}B:{}".format(safety_val,
                   predicted_range.start, predicted_range.stop, fq, bq, self.feet.is_live, self.body.is_live))
-            # self._log_safety_data(safety_data)
 
-            await asyncio.sleep(0.2)
+            self._log_safety_data({
+                't': t,
+                'sv': safety_val,
+                'r_start': predicted_range.start,
+                'r_stop': predicted_range.stop,
+                'fq': fq,
+                'bq': bq,
+                'f': self.feet.is_live,
+                'b': self.body.is_live
+            })
+
+            # Manual garbage collection
+            del t
+            del fq
+            del bq
+            del safety_val
+            del v
+            del predicted_range
+            del threshold
+            gc.collect()
+
+            await asyncio.sleep(0.05)
 
     def monitor_safety_val(self) -> None:
         if self._monitoring == None:
@@ -266,7 +297,8 @@ class Channel:
             self._max_t = 0
             self._mean_t = 0
             self._mean_count = 0
-            self.monitor_safety_val()
+
+        self.monitor_safety_val()
 
     def adjust_safety_range(self, vals: dict) -> None:
         self.restart_monitoring()

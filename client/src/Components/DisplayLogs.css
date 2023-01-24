@@ -25,3 +25,7 @@
 .zone-output-on {
   color: lightgreen;
 }
+
+.out-of-range {
+  color: red
+}

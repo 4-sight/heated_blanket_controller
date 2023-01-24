@@ -2,21 +2,22 @@ import { useCallback, useEffect, useState } from "preact/hooks";
 
 export interface Log {
   t: number;
-  r: {
-    start: number;
-    stop: number;
-  };
   sv: number;
-  f: number;
-  b: number;
+  r_start: number;
+  r_stop: number;
+  f: boolean;
+  b: boolean;
+  fq: number;
+  bq: number
 }
 
 export type ChannelData = {
-  exceptions: Log[];
+  logs: Log[];
   exception_count: number;
   min_t: number;
   max_t: number;
   mean_t: number;
+  count: number;
 };
 
 export type Logs = {
@@ -35,27 +36,27 @@ const usePollLogs = () => {
 
       try {
         let data = await res.json();
-        data = data as Logs;
+        let _data = data as Logs;
 
         setLogs((prevLogs) => {
           if (prevLogs == null) {
-            return data;
+            return _data;
           }
 
           let newLogs: Logs = {
             channel_1: {
-              exceptions: [
-                ...prevLogs.channel_1.exceptions,
-                ...data.channel_1.exceptions,
+              ..._data.channel_1,
+              logs: [
+                ...prevLogs.channel_1.logs,
+                ..._data.channel_1.logs,
               ],
-              ...data.channel_1,
             },
             channel_2: {
-              exceptions: [
-                ...prevLogs.channel_2.exceptions,
-                ...data.channel_2.exceptions,
+              ..._data.channel_2,
+              logs: [
+                ...prevLogs.channel_2.logs,
+                ..._data.channel_2.logs,
               ],
-              ...data.channel_2,
             },
           };
 

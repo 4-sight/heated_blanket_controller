@@ -29,8 +29,9 @@ const DisplayChannel = ({ index, channelLogs }: ChannelProps) => {
         <div>Min Threshold: {channelLogs.min_t}</div>
         <div>Max Threshold: {channelLogs.max_t}</div>
         <div>Mean Threshold: {channelLogs.mean_t}</div>
+        <div>Readings: {channelLogs.count}</div>
         <div>Out of range count: {channelLogs.exception_count}</div>
-        {channelLogs.exceptions.map((log: Log) => (
+        {channelLogs.logs.map((log: Log) => (
           <div className="channel-row">
             <div className="timestamp">T: {log.t}</div>
             <div className="feet">
@@ -40,9 +41,11 @@ const DisplayChannel = ({ index, channelLogs }: ChannelProps) => {
               Body: <ZoneOutput zoneOutput={log.b} />
             </div>
             <div className="range">
-              Expected Range: {log.r.start} - {log.r.stop}
+              Expected Range: {log.r_start} - {log.r_stop}
             </div>
-            <div className="safety-val">{log.sv}mV</div>
+            <div className={`safety-val ${log.sv >= log.r_start && log.sv < log.r_stop ? "" : "out-of-range"}`}>{log.sv}mV</div>
+            <div className="feet-charge">FQ: {log.fq.toFixed(3)}</div>
+            <div className="body-charge">BQ: {log.bq.toFixed(3)}</div>
           </div>
         ))}
       </div>
@@ -50,8 +53,8 @@ const DisplayChannel = ({ index, channelLogs }: ChannelProps) => {
   );
 };
 
-const ZoneOutput = ({ zoneOutput }: { zoneOutput: number }) => {
-  if (zoneOutput == 1) {
+const ZoneOutput = ({ zoneOutput }: { zoneOutput: boolean }) => {
+  if (!zoneOutput) {
     return <span className="zone-output-off">OFF</span>;
   }
   return <span className="zone-output-on">ON</span>;
