@@ -127,7 +127,7 @@ class Heater:
             -1 * ((self._C * math.log(q, 10)) /
                   (-self._B * math.log(q, 10) + self._A))
         x = dt + adj
-        exponent = (x * self._A) / (self._C + self._B + x)
+        exponent = (x * self._A) / (self._C + self._B * x)
         dq = 1 - pow(10, -exponent)
 
         if self.is_live:
