@@ -43,7 +43,7 @@ class App:
         # self.set_screen("home")
 
     async def start(self) -> None:
-        asyncio.create_task(self._server.start())
+        self._server.start()
         asyncio.create_task(self._connection.monitor_connection())
         # asyncio.create_task(self._inputs.listen())
         asyncio.create_task(self._control.test_channels())

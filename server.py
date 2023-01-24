@@ -14,7 +14,7 @@ class Server:
         self._logger = logger
         self._control = control
 
-    async def start(self):
+    def start(self):
         self._events.publish(ACTIONS.LOG_DEBUG, "Setting up webserver...")
         asyncio.create_task(asyncio.start_server(
             self._serve_client, "0.0.0.0", 80))
