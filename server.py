@@ -3,6 +3,7 @@ from control import Control
 from logger import Logger
 from events import Events, ACTIONS
 import uasyncio as asyncio
+import gc
 
 
 class Server:
@@ -23,95 +24,119 @@ class Server:
     async def _serve_client(self, reader, writer):
         self._events.publish(ACTIONS.CLIENT_CONNECTED, None)
 
-        req_buffer = await reader.read(4096)
-        req = parse_http_request(req_buffer)
+        req_buffer = None
+        req = None
+        method = None
+        route = ""
+        data = None
+        response = None
+        body = None
+        payload = None
 
-        method = req['method']
-        route: str = req['path']
-        self._events.publish(ACTIONS.LOG_DEBUG, route)
+        try:
+            req_buffer = await reader.read(4096)
+            req = parse_http_request(req_buffer)
 
-        # GET
-        if method == "GET":
+            method = req['method']
+            route: str = req['path']
+            self._events.publish(ACTIONS.LOG_DEBUG, route)
 
-            if route.startswith("/app"):
-                await serve_app(writer)
+            # GET
+            if method == "GET":
 
-            elif route.startswith("/drain_logs"):
-                logs = self._control.take_channel_logs()
-                response = json.dumps(logs)
-                writer.write(
-                    'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
-                writer.write(response)
-            elif route.startswith("/curve_data/1"):
-                curve_data = self._control.get_curve_data(1)
-                response = json.dumps(curve_data)
-                writer.write(
-                    'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
-                writer.write(response)
-            elif route.startswith("/curve_data/2"):
-                curve_data = self._control.get_curve_data(2)
-                response = json.dumps(curve_data)
-                writer.write(
-                    'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
-                writer.write(response)
-            elif route.startswith("/heater_levels"):
-                heater_levels = self._control.get_heater_levels()
-                response = json.dumps(heater_levels)
-                writer.write(
-                    'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
-                writer.write(response)
-            elif route.startswith("/logging_level"):
-                logging_level = self._logger.get_level()
-                response = json.dumps({'level': logging_level})
-                writer.write(
-                    'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
-                writer.write(response)
-            else:
-                await serve_public_asset(writer, route)
+                if route.startswith("/app"):
+                    await serve_app(writer)
 
-        if method == "POST":
-            if route == "/api/apply_preset/":
-                body = json.loads(req['body'])
-                payload = int(body['preset'])
-                self._events.publish(ACTIONS.APPLY_PRESET, payload)
+                elif route.startswith("/drain_logs"):
+                    data = self._control.take_channel_logs()
+                    response = json.dumps(data)
+                    writer.write(
+                        'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
+                    writer.write(response)
+                elif route.startswith("/curve_data/1"):
+                    curve_data = self._control.get_curve_data(1)
+                    response = json.dumps(curve_data)
+                    writer.write(
+                        'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
+                    writer.write(response)
+                elif route.startswith("/curve_data/2"):
+                    data = self._control.get_curve_data(2)
+                    response = json.dumps(data)
+                    writer.write(
+                        'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
+                    writer.write(response)
+                elif route.startswith("/heater_levels"):
+                    data = self._control.get_heater_levels()
+                    response = json.dumps(data)
+                    writer.write(
+                        'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
+                    writer.write(response)
+                elif route.startswith("/logging_level"):
+                    data = self._logger.get_level()
+                    response = json.dumps({'level': data})
+                    writer.write(
+                        'HTTP/1.1 200 OK\r\nContent-type: application/json\r\n\r\n')
+                    writer.write(response)
+                else:
+                    await serve_public_asset(writer, route)
 
-                writer.write(
-                    'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
+            if method == "POST":
+                if route == "/api/apply_preset/":
+                    body = json.loads(req['body'])
+                    payload = int(body['preset'])
+                    self._events.publish(ACTIONS.APPLY_PRESET, payload)
 
-            elif route == "/api/set_heater_levels/":
-                body = json.loads(req['body'])
-                payload = body['heater_levels']
-                self._events.publish(ACTIONS.SET_LEVELS, payload)
+                    writer.write(
+                        'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
 
-                writer.write(
-                    'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
+                elif route == "/api/set_heater_levels/":
+                    body = json.loads(req['body'])
+                    payload = body['heater_levels']
+                    self._events.publish(ACTIONS.SET_LEVELS, payload)
 
-            elif route == "/api/adjust_safety_range/":
-                body = json.loads(req['body'])
-                payload = body['safety_range_settings']
-                self._events.publish(ACTIONS.ADJUST_SAFETY_RANGE, payload)
+                    writer.write(
+                        'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
 
-                writer.write(
-                    'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
+                elif route == "/api/adjust_safety_range/":
+                    body = json.loads(req['body'])
+                    payload = body['safety_range_settings']
+                    self._events.publish(ACTIONS.ADJUST_SAFETY_RANGE, payload)
 
-            elif route == "/api/set_logging_level/":
-                body = json.loads(req['body'])
-                level = body['log_level']
-                self._logger._set_level(level)
+                    writer.write(
+                        'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
 
-                writer.write(
-                    'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
+                elif route == "/api/set_logging_level/":
+                    body = json.loads(req['body'])
+                    payload = body['log_level']
+                    self._logger._set_level(payload)
 
-        await writer.drain()
-        await writer.wait_closed()
-        self._events.publish(ACTIONS.CLIENT_DISCONNECTED, None)
+                    writer.write(
+                        'HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n')
 
+        except MemoryError:
+            writer.write('HTTP/1.1 503 Out of Resources\r\n\r\n')
+        finally:
+            await writer.drain()
+            await writer.wait_closed()
+            self._events.publish(ACTIONS.CLIENT_DISCONNECTED, None)
+            del req_buffer
+            del req
+            del method
+            del route
+            del data
+            del response
+            del body
+            del payload
+            gc.collect()
 
 # =============================================================
 
 
 async def serve_app(writer):
     path = "./dist/index.html"
+    file = None
+    html = None
+
     try:
         with open(path, 'r') as file:
             html = file.read()
@@ -120,11 +145,18 @@ async def serve_app(writer):
         writer.write(html)
     except MemoryError:
         writer.write('HTTP/1.1 503 Out of Resources\r\n\r\n')
+    finally:
+        del file
+        del html
+        del path
+        gc.collect()
 
 
 # =============================================================
 
 async def serve_public_asset(writer, path: str):
+    asset = None
+    response = None
     try:
         asset = open("./dist" + path)
         response = asset.read()
@@ -156,6 +188,10 @@ async def serve_public_asset(writer, path: str):
         print("ERROR: Failed to serve asset", ex)
         writer.write('HTTP/1.1 500 Server Error\r\n\r\n')
         writer.write("ERROR: Failed to serve asset \r\n{}\r\n".format(ex))
+    finally:
+        del asset
+        del response
+        gc.collect()
 
 # =============================================================
 
@@ -182,6 +218,12 @@ def parse_http_request(req_buffer):
 
     # Last line is the body (or blank if no body.)
     req['body'] = req_buffer_lines[len(req_buffer_lines) - 1]
+
+    del target
+    del req_buffer_lines
+    del req_buffer
+
+    gc.collect()
 
     return req
 
