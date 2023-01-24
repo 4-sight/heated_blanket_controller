@@ -260,16 +260,16 @@ class Channel:
             # print("SV: {}\tRANGE: {}-{}\tFQ: {}\tBQ: {}\tF:{}B:{}".format(safety_val,
             #       predicted_range.start, predicted_range.stop, fq, bq, self.feet.is_live, self.body.is_live))
 
-            self._log_safety_data({
-                't': t,
-                'sv': safety_val,
-                'r_start': predicted_range.start,
-                'r_stop': predicted_range.stop,
-                'fq': fq,
-                'bq': bq,
-                'f': self.feet.is_live,
-                'b': self.body.is_live
-            })
+                self._log_safety_data({
+                    't': t,
+                    'sv': safety_val,
+                    'r_start': predicted_range.start,
+                    'r_stop': predicted_range.stop,
+                    'fq': fq,
+                    'bq': bq,
+                    'f': self.feet.is_live,
+                    'b': self.body.is_live
+                })
 
             # Manual garbage collection
             del t
