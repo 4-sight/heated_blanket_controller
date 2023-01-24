@@ -68,13 +68,13 @@ class Heater:
 
             while True:
                 self._events.publish(
-                    ACTIONS.LOG_INFO, self.name + " on")
+                    ACTIONS.LOG_VERBOSE, self.name + " on")
                 self._turn_on()
                 await asyncio.sleep(self._level)
 
                 if level < 10:
                     self._events.publish(
-                        ACTIONS.LOG_INFO, self.name + " off")
+                        ACTIONS.LOG_VERBOSE, self.name + " off")
                     self._turn_off()
                     await asyncio.sleep(10 - self._level)
 
